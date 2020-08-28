@@ -89,9 +89,3 @@ class ExpressionParser(Transformer):
 
     def get_syntax_tree(self):
         return base_parser.parse(self.expression)
-
-
-#print(get_syntax_tree('(EQV  "a1" (AND "a2" "a3")) ').pretty())
-if __name__ == '__main__':
-    parser = ExpressionParser('(AND "A1" (IMP "A3" "A4") "B4")')
-    print(parser.get_syntax_tree().pretty())
