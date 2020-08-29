@@ -1,6 +1,6 @@
 from lark import Lark, Tree, Transformer
 
-from core.element import NodeType, Operator
+from core.element import NodeType, Operator, Node, StateNode
 
 base_parser = Lark("""
     expr: and_expr
@@ -92,10 +92,16 @@ class ExpressionParser(Transformer):
         return base_parser.parse(self.expression)
 
     def parser(self):
-        self.make_tree(self.__get_syntax_tree().children[0])
+        node = self.make_tree(self.__get_syntax_tree().children[0])
+        print(node)
 
-    def make_tree(self, tree: Tree):
+    def make_tree(self, tree: Tree) -> Node:
         if tree.data == "and_expr":
             op = Operator(NodeType.AND)
             for children in tree.children:
-                print(children)
+                op.add_child(self.make_tree(children))
+            return op
+        if tree.data == "token":
+            st = StateNode(tree.children[0].replace('"', ''), "nope")
+            print(st)
+            return st
