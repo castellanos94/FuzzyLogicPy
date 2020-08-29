@@ -67,7 +67,7 @@ class ZadehLogic(Logic):
         return min(self.imp_(a, b), self.imp_(b, a))
 
     def for_all(self, values) -> float:
-        pass
+        return min(values)
 
     def exist(self, values) -> float:
-        pass
+        return max(values)

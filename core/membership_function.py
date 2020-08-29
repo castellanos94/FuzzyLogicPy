@@ -1,3 +1,4 @@
+import math
 from abc import ABC, abstractmethod
 
 
@@ -11,9 +12,24 @@ class MembershipFunction(ABC):
     def derive(self, param: str) -> float:
         pass
 
-    @abstractmethod
     def name(self) -> str:
-        pass
+        return self.__class__.__name__
 
     def get_values(self):
         return self.__dict__.values()
+
+    def __str__(self):
+        return self.name() + ' ' + str(self.__dict__)
+
+
+class Sigmoid(MembershipFunction):
+    def __init__(self, center: float, beta: float):
+        self.center = center
+        self.beta = beta
+
+    def evaluate(self, value) -> float:
+        return (1 / (1 + (
+            math.exp(-((math.log(0.99) - math.log(0.01)) / (self.center - self.beta)) * (value - self.center)))))
+
+    def derive(self, param: str) -> float:
+        pass
