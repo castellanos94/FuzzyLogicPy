@@ -48,7 +48,25 @@ class Operator(Node):
         self.type = type
 
     def add_child(self, node: Node):
-        pass
+        if self.type is NodeType.AND:
+            self.children.append(node)
+        elif self.type is NodeType.NOT:
+            if len(self.children) == 0:
+                self.children.append(node)
+            else:
+                raise RuntimeError("arity must be one element.")
+        elif self.type is NodeType.IMP:
+            if len(self.children) < 2:
+                self.children.append(node)
+            else:
+                raise RuntimeError("arity must be two element.")
+        elif self.type is NodeType.EQV:
+            if len(self.children) < 2:
+                self.children.append(node)
+            else:
+                raise RuntimeError("arity must be two element.")
+        elif self.type is NodeType.OR:
+            self.children.append(node)
 
 
 class StateNode(Node):
