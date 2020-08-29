@@ -1,3 +1,5 @@
+from typing import Dict
+
 from lark import Lark, Tree, Transformer
 
 from core.element import NodeType, Operator, Node, StateNode
@@ -38,8 +40,11 @@ base_parser = Lark("""
 
 
 class ExpressionParser(Transformer):
-    def __init__(self, expression: str):
+    def __init__(self, expression: str, states: Dict, generators: Dict):
         self.expression = expression
+        self.names = ["imp", "not", "eqv", "or", "and"]
+        self.states = states
+        self.generators = generators
 
     def expr(self, children):
         num_children = len(children)
@@ -91,17 +96,47 @@ class ExpressionParser(Transformer):
     def __get_syntax_tree(self):
         return base_parser.parse(self.expression)
 
-    def parser(self):
-        node = self.make_tree(self.__get_syntax_tree().children[0])
-        print(node)
+    def parser(self) -> Node:
+        return self.__make_tree(self.__get_syntax_tree().children[0])
 
-    def make_tree(self, tree: Tree) -> Node:
+    def __make_tree(self, tree: Tree) -> Node:
+        if tree.data == "expr":
+            return self.__make_tree(tree.children[0])
         if tree.data == "and_expr":
             op = Operator(NodeType.AND)
-            for children in tree.children:
-                op.add_child(self.make_tree(children))
+            for child in tree.children:
+                if len(child.children) > 0:
+                    op.add_child(self.__make_tree(child))
             return op
+        if tree.data == "or_expr":
+            op = Operator(NodeType.OR)
+            for child in tree.children:
+                if len(child.children) > 0:
+                    op.add_child(self.__make_tree(child))
+            return op
+        if tree.data == "imp_expr":
+            op = Operator(NodeType.IMP)
+            for child in tree.children:
+                if child.data not in self.names:
+                    op.add_child(self.__make_tree(child))
+            return op
+        if tree.data == "eqv_expr":
+            op = Operator(NodeType.EQV)
+            for child in tree.children:
+                if len(child.children) > 0:
+                    op.add_child(self.__make_tree(child))
+            return op
+        if tree.data == "not_expr":
+            op = Operator(NodeType.NOT)
+            for child in tree.children:
+                if len(child.children) > 0:
+                    op.add_child(self.__make_tree(child))
+            return op
+
         if tree.data == "token":
-            st = StateNode(tree.children[0].replace('"', ''), "nope")
-            print(st)
-            return st
+            token = tree.children[0].replace('"', '')
+            if token in self.states:
+                return StateNode(self.states[token].label, self.states[token].cname, self.states[token].membership)
+            if token in self.generators:
+                return self.generators[token]
+            raise RuntimeError("Label " + token + " not found")
