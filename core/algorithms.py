@@ -5,15 +5,13 @@ from core.logic import Logic
 
 
 class ExpressionEvaluation:
-    def __init__(self, path: str, logic: Logic, tree: Operator):
+    def __init__(self, data: dict, logic: Logic, tree: Operator):
         self.tree = tree
-        self.path = path
         self.logic = logic
-        self.df = pd.read_csv(path)
-        self.data_fuzzy = None
+        self.df = data
+        self.data_fuzzy = pd.DataFrame({})
 
     def __fuzzy_data(self):
-        self.data_fuzzy = {}
         header = self.df.head()
         for state in Operator.get_nodes_by_type(self.tree, NodeType.STATE):
             if state.cname in header:
@@ -21,7 +19,6 @@ class ExpressionEvaluation:
                 for v in self.df[state.cname]:
                     values.append(state.membership.evaluate(v))
                 self.data_fuzzy[state.label] = values
-        self.data_fuzzy = pd.DataFrame(self.data_fuzzy)
 
     def __fit_compute(self):
         values = []
@@ -32,7 +29,6 @@ class ExpressionEvaluation:
         self.data_fuzzy['For ALL'] = self.tree.fitness
         self.data_fuzzy['Exist'] = self.logic.exist(values)
         self.data_fuzzy['Result'] = values
-        print(self.data_fuzzy)
 
     def __fit_value(self, node: Node, index: int):
         values = []
@@ -67,5 +63,10 @@ class ExpressionEvaluation:
         self.__fit_compute()
         return self.tree
 
-    def export_data(self):
-        pass
+    def export_data(self, output_path: str):
+        if '.csv' in output_path:
+            self.data_fuzzy.to_csv(output_path, index=False)
+        elif '.xlsx' in output_path:
+            self.data_fuzzy.to_excel(output_path, index=False)
+        else:
+            raise RuntimeError('Invalid output file format')

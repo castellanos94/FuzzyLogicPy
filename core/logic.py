@@ -1,3 +1,4 @@
+import math
 from abc import ABC, abstractmethod
 from functools import reduce
 
@@ -102,13 +103,13 @@ class GMBC(Logic):
         return pow(self.imp_(a, b) * self.imp_(b, a), 0.5)
 
     def for_all(self, values) -> float:
-        pass
+        return pow(math.e, (1 / len(values)) * sum([math.log(v) for v in values if v != 0]))
 
     def exist(self, values) -> float:
-        pass
+        return 1 - pow(math.e, (1 / len(values) * sum([math.log(1 - v) for v in values if v != 0])))
 
     def and_(self, values) -> float:
         return pow(reduce(lambda x, y: x * y, values), 1 / len(values))
 
     def or_(self, values) -> float:
-        return pow(1 - reduce(lambda x, y: (1 - x) * (1 - y), values), 1 / len(values))
+        return 1 - pow(reduce(lambda x, y: (1 - x) * (1 - y), values), 1 / len(values))

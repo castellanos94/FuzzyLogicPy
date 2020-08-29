@@ -1,12 +1,13 @@
 # This is a sample Python script.
 
+import pandas as pd
+
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 from core.algorithms import ExpressionEvaluation
 from core.element import StateNode, Operator, NodeType
 from core.expression_parser import ExpressionParser
-from core.logic import ZadehLogic
-
+from core.logic import GMBC
 from core.membership_function import Sigmoid
 
 
@@ -26,9 +27,11 @@ if __name__ == '__main__':
     # print(node)
     quality = StateNode('high quality', 'quality', Sigmoid(5.5, 4))
     alcohol = StateNode('high alcohol', 'alcohol', Sigmoid(11.65, 9))
-    imp = Operator(NodeType.IMP)
-    imp.add_child(alcohol)
-    imp.add_child(quality)
-
-    evaluator = ExpressionEvaluation('datasets/tinto.csv', ZadehLogic(), imp)
-    print(evaluator.eval(), imp.fitness)
+    tree = Operator(NodeType.OR)
+    tree.add_child(alcohol)
+    tree.add_child(quality)
+    data = pd.read_csv('datasets/tinto.csv')
+    evaluator = ExpressionEvaluation(data, GMBC(), tree)
+    print(GMBC())
+    print(evaluator.eval(), tree.fitness)
+    evaluator.export_data('results/evaluation.xlsx')
