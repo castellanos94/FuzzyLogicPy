@@ -1,5 +1,7 @@
 from lark import Lark, Tree, Transformer
 
+from core.element import NodeType, Operator
+
 base_parser = Lark("""
     expr: and_expr
         | or_expr
@@ -86,5 +88,14 @@ class ExpressionParser(Transformer):
         else:
             return Tree(data="or_expr", children=children[1:])
 
-    def get_syntax_tree(self):
+    def __get_syntax_tree(self):
         return base_parser.parse(self.expression)
+
+    def parser(self):
+        self.make_tree(self.__get_syntax_tree().children[0])
+
+    def make_tree(self, tree: Tree):
+        if tree.data == "and_expr":
+            op = Operator(NodeType.AND)
+            for children in tree.children:
+                print(children)

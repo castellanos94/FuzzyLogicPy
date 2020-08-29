@@ -15,7 +15,7 @@ def print_hi(name):
 if __name__ == '__main__':
     print_hi('PyCharm')
     parser = ExpressionParser('(AND "A1" (IMP "A3" "A4") "B4")')
-    print(parser.get_syntax_tree().pretty())
+    parser.parser()
     quality = StateNode('high quality', 'quality')
     alcohol = StateNode('high alcohol', 'alcohol')
     imp = Operator(NodeType.IMP)
