@@ -75,7 +75,10 @@ class Operator(Node):
             raise RuntimeError("error: " + str(self.type))
 
     def __str__(self):
-        return "({} {})".format(str(self.type), str(self.children.join).replace("[", "").replace("]", "").replace(",", ""))
+        return "({} {})".format(str(self.type),
+                                str([v.label for v in self.children]).replace("[", "").replace("]", "").replace(",",
+                                                                                                                "").replace(
+                                    '\'', "\""))
 
 
 class StateNode(Node):
