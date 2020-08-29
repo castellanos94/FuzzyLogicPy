@@ -40,6 +40,11 @@ class Logic(ABC):
 
 
 class ZadehLogic(Logic):
+    """
+    Ying, Mingsheng. (2002). Implication operators in fuzzy logic. Fuzzy Systems,
+    IEEE Transactions on. 10. 88 - 91. 10.1109/91.983282.
+    """
+
     def and_(self, values) -> float:
         return max(values)
 
