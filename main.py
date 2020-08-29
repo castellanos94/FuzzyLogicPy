@@ -18,11 +18,13 @@ if __name__ == '__main__':
     express = '(IMP (NOT "sepal.width") (OR "petal.length" "sepal.length" "petal.width"))'
     express = '(IMP (IMP (EQV "sepal.length" "sepal.width") (AND "sepal.length" "sepal.width" "petal.length" "petal.width")) "variety")'
     parser = ExpressionParser(express, dict(), dict())
-    node = parser.parser()
-    print(node)
+    # node = parser.parser()
+    # print(node)
     quality = StateNode('high quality', 'quality')
     alcohol = StateNode('high alcohol', 'alcohol')
     imp = Operator(NodeType.IMP)
     imp.add_child(quality)
     imp.add_child(alcohol)
-    print(imp)
+    print(imp, id(imp))
+    print(id(quality), quality.parent_id)
+    print(id(alcohol), alcohol.parent_id)

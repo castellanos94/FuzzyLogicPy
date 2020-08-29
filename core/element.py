@@ -40,6 +40,7 @@ class Node(ABC):
         self.label = label
         self.editable = editable
         self.type = None
+        self.parent_id = None
 
     def __str__(self):
         return self.label
@@ -55,6 +56,7 @@ class Operator(Node):
         self.type = type_
 
     def add_child(self, node: Node):
+        node.parent_id = id(self)
         if self.type is NodeType.AND:
             self.children.append(node)
         elif self.type is NodeType.NOT:
@@ -107,3 +109,44 @@ class GeneratorNode(Node):
 
     def __str__(self):
         return '{} {} {} {}'.format(self.label, self.labels, self.operators, self.depth)
+
+
+def dfs(root: Operator, node: Node, pos: int = 0):
+    if id(root) == root.parent_id:
+        return pos
+    for child in root.children:
+        if child.parent_id == node.parent_id:
+            return pos + 1
+        elif isinstance(child, Operator):
+            v = dfs(child, node, pos + 1)
+            if v != -1:
+                return v
+    return -1
+
+
+def replace_node(root: Operator, old_value: Node, new_value: Node) -> bool:
+    for idx, v in enumerate(root.children):
+        if v == old_value:
+            root.children[idx] = new_value
+            return True
+    return False
+
+
+def get_nodes_by_type(root: Operator, type_: NodeType) -> List[Node]:
+    found = []
+    for node in root.children:
+        if node.type == type_:
+            found.append(node)
+        if isinstance(node, Operator):
+            found += get_nodes_by_type(node, type_)
+    return found
+
+
+def get_editable_nodes(root: Operator) -> List[Node]:
+    editable = []
+    for node in root.children:
+        if node.editable:
+            editable.append(node)
+        if isinstance(node, Operator):
+            editable += get_nodes_by_type(node)
+    return editable
