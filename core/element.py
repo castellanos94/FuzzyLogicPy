@@ -29,7 +29,7 @@ class NodeType(enum.Enum):
             return "STATE"
         elif self is NodeType.GENERATOR:
             return "GENERATOR"
-        raise Exception("Invalid")
+        raise RuntimeError("Invalid")
 
     def __str__(self):
         return self.__repr__()
@@ -49,7 +49,7 @@ class Operator(Node):
     def __init__(self, type_: NodeType, editable: bool = False):
         super(Operator, self).__init__(str(type_), editable)
         self.children = []
-        self.type = type
+        self.type = type_
 
     def add_child(self, node: Node):
         if self.type is NodeType.AND:
@@ -73,6 +73,9 @@ class Operator(Node):
             self.children.append(node)
         else:
             raise RuntimeError("error: " + str(self.type))
+
+    def __str__(self):
+        return "({} {})".format(str(self.type), str(self.children.join).replace("[", "").replace("]", "").replace(",", ""))
 
 
 class StateNode(Node):
