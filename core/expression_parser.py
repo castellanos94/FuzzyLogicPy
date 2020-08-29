@@ -21,9 +21,8 @@ base_parser = Lark("""
     
     and_expr: "(" and [token | expr] [token | expr]+")"
             | "(" and expr expr")"
-    or_expr:"(" or [token | and_expr] [token | and_expr]+")"
-            | "(" or or_expr or_expr")"
-            | "("expr")"
+    or_expr:"(" or [token | expr] [token | expr]+")"
+            | "(" or expr expr")"
     token: STRING
     and: "AND"
     or: "OR"
