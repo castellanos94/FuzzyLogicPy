@@ -53,7 +53,7 @@ class ExpressionEvaluation:
                                            self.__fit_value(node.children[1], index))
             return node.fitness
         elif node.type == NodeType.NOT:
-            node.fitness = self.logic.not_(self.__fit_value(node.childre[0], index))
+            node.fitness = self.logic.not_(self.__fit_value(node.children[0], index))
             return node.fitness
         else:
             raise RuntimeError("Don't supported: " + node.type)
