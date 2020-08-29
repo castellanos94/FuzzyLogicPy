@@ -25,7 +25,12 @@ class StateNode(Node):
         self.membership = membership
 
     def __str__(self):
-        return '{} {} {}'.format(self.label, self.cname, self.membership)
+        return '["{}" "{}" {}]'.format(self.label, self.cname, "" if self.membership is None else self.membership)
 
     def __repr__(self):
         return self.__str__()
+
+
+if __name__ == '__main__':
+    quality = StateNode('high quality', 'quality')
+    print(quality)
