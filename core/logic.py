@@ -23,17 +23,17 @@ class Logic(ABC):
         pass
 
     @abstractmethod
-    def for_all(self, values: List[float]) -> float:
+    def for_all(self, values) -> float:
         pass
 
     @abstractmethod
-    def exist(self, values: List[float]) -> float:
+    def exist(self, values) -> float:
         pass
 
     @abstractmethod
-    def and_(self, values: List[float]) -> float:
+    def and_(self, values) -> float:
         pass
 
     @abstractmethod
-    def or_(self, values: List[float]) -> float:
+    def or_(self, values) -> float:
         pass
