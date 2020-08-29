@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 import enum
+import json
 from abc import ABC
 from typing import List
 
 from core.membership_function import MembershipFunction
 
 
-class NodeType(enum.Enum):
-    NOT = 0
-    AND = 1
-    OR = 2
-    IMP = 3
-    EQV = 4
-    STATE = 5
-    GENERATOR = 6
+class NodeType(str, enum.Enum):
+    NOT = 'NOT'
+    AND = 'AND'
+    OR = 'OR'
+    IMP = 'IMP'
+    EQV = 'EQV'
+    STATE = 'STATE'
+    GENERATOR = 'GENERATOR'
 
     def __repr__(self):
         if self is NodeType.AND:
@@ -42,13 +43,15 @@ class Node(ABC):
         self.label = label
         self.editable = editable
         self.type = None
-        self.parent_id = None
 
     def __str__(self):
         return self.label
 
     def __repr__(self):
         return self.__str__()
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=False, indent=4)
 
 
 class Operator(Node):
@@ -60,10 +63,10 @@ class Operator(Node):
 
     @staticmethod
     def dfs(root: Operator, node: Node, pos: int = 0):
-        if id(root) == root.parent_id:
+        if root == node:
             return pos
         for child in root.children:
-            if child.parent_id == node.parent_id:
+            if child == node:
                 return pos + 1
             elif isinstance(child, Operator):
                 v = Operator.dfs(child, node, pos + 1)
@@ -100,7 +103,6 @@ class Operator(Node):
         return editable
 
     def add_child(self, node: Node):
-        node.parent_id = id(self)
         if self.type is NodeType.AND:
             self.children.append(node)
         elif self.type is NodeType.NOT:

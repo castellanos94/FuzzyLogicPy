@@ -33,4 +33,8 @@ if __name__ == '__main__':
     evaluator = ExpressionEvaluation(data, GMBC(), tree)
     print(GMBC())
     print(evaluator.eval(), tree.fitness)
+
+    print(states)
+    print(quality.to_json())
+    print(tree.to_json())
     evaluator.export_data('results/evaluation.xlsx')

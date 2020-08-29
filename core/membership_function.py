@@ -19,11 +19,12 @@ class MembershipFunction(ABC):
         return self.__dict__.values()
 
     def __str__(self):
-        return self.name() + ' ' + str(self.__dict__)
+        return str(self.__dict__)
 
 
 class Sigmoid(MembershipFunction):
     def __init__(self, center: float, beta: float):
+        self.type = self.name()
         self.center = center
         self.beta = beta
 
