@@ -7,11 +7,11 @@ class Logic(ABC):
         pass
 
     @abstractmethod
-    def and_(self, a: float, b: float) -> float:
+    def and_test(self, a: float, b: float) -> float:
         pass
 
     @abstractmethod
-    def or_(self, a: float, b: float) -> float:
+    def or_test(self, a: float, b: float) -> float:
         pass
 
     @abstractmethod
@@ -36,4 +36,33 @@ class Logic(ABC):
 
     @abstractmethod
     def or_(self, values) -> float:
+        pass
+
+
+class ZadehLogic(Logic):
+    def and_(self, values) -> float:
+        return max(values)
+
+    def or_(self, values) -> float:
+        return min(values)
+
+    def not_(self, value: float) -> float:
+        return 1 - value
+
+    def and_test(self, a: float, b: float) -> float:
+        return min(a, b)
+
+    def or_test(self, a: float, b: float) -> float:
+        return max(a, b)
+
+    def imp_(self, a: float, b: float) -> float:
+        return max(1 - a, min(a, b))
+
+    def eqv_(self, a: float, b: float) -> float:
+        return min(self.imp_(a, b), self.imp_(b, a))
+
+    def for_all(self, values) -> float:
+        pass
+
+    def exist(self, values) -> float:
         pass
