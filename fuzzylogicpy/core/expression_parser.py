@@ -2,7 +2,7 @@ from typing import Dict
 
 from lark import Lark, Tree, Transformer
 
-from core.element import NodeType, Operator, Node, StateNode
+from fuzzylogicpy.core.element import Node, NodeType, Operator, StateNode
 
 base_parser = Lark("""
     expr: and_expr

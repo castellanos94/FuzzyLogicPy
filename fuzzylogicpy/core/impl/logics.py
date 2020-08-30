@@ -1,7 +1,7 @@
 import math
 from functools import reduce
 
-from core.logic import Logic
+from fuzzylogicpy.core.logic import Logic
 
 
 class ZadehLogic(Logic):

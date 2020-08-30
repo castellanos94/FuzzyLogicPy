@@ -1,6 +1,6 @@
 import math
 
-from core.membership_function import MembershipFunction
+from fuzzylogicpy.core.membership_function import MembershipFunction
 
 
 class Sigmoid(MembershipFunction):

@@ -5,7 +5,7 @@ import json
 from abc import ABC
 from typing import List
 
-from core.membership_function import MembershipFunction
+from fuzzylogicpy.core.membership_function import MembershipFunction
 
 
 class NodeType(str, enum.Enum):

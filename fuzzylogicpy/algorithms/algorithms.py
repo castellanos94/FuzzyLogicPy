@@ -1,7 +1,7 @@
 import pandas as pd
 
-from core.element import Operator, NodeType, Node
-from core.logic import Logic
+from fuzzylogicpy.core.element import Operator, NodeType, Node
+from fuzzylogicpy.core.logic import Logic
 
 
 class ExpressionEvaluation:
