@@ -33,18 +33,18 @@ def test_evaluation():
 
 def test_MembershipFunctionOptimizer():
     data = pd.read_csv('datasets/tinto.csv')
-    quality = StateNode('quality', 'quality')
-    alcohol = StateNode('alcohol', 'alcohol')
-    ph = StateNode("pH", "pH")
-    citric = StateNode("citric_acid", "citric_acid")
-    states = {quality.label: quality, alcohol.label: alcohol, ph.label: ph, citric.label: citric}
-    parser = ExpressionParser('(EQV (AND "alcohol" "pH" "citric_acid") "quality")', states, dict())
+    states = {}
+    for head in data.head():
+        states[head] = StateNode(head, head)
+    expression = '(IMP (AND {}) "quality")'.format(
+        str([str(v) for v in states.keys() if 'quality' != v]).replace('\'', '"').replace(',', '').replace('[',
+                                                                                                           '').replace(
+            ']', ''))
+    parser = ExpressionParser(expression, states, dict())
     root = parser.parser()
-    mfo = MembershipFunctionOptimizer(data, GMBC(), min_value=1, iteration=10,population_size=5)
+    mfo = MembershipFunctionOptimizer(data, GMBC())
     print(root, root.fitness)
     mfo.optimizer(root)
-
-    print(root.to_json())
     print(root, root.fitness)
 
 

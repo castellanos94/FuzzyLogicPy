@@ -267,5 +267,5 @@ class MembershipFunctionOptimizer:
 
             for state in self.states:
                 state.membership = functions[id(state)][idx]['F']
-
+            print(fitness)
         return ExpressionEvaluation(self.data, self.logic, tree).eval()
