@@ -13,6 +13,14 @@ class MembershipFunction(ABC):
     def derive(self, param: str) -> float:
         pass
 
+    @abstractmethod
+    def is_valid(self) -> bool:
+        pass
+
+    @abstractmethod
+    def repair(self):
+        pass
+
     def name(self) -> str:
         return self.__class__.__name__
 

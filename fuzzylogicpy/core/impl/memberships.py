@@ -1,9 +1,17 @@
+import random
+
 import numpy as np
 
 from fuzzylogicpy.core.membership_function import MembershipFunction
 
 
 class Sigmoid(MembershipFunction):
+    def is_valid(self) -> bool:
+        pass
+
+    def repair(self):
+        pass
+
     def __init__(self, center: float, beta: float):
         super().__init__()
         self.center = center
@@ -18,6 +26,17 @@ class Sigmoid(MembershipFunction):
 
 
 class FPG(MembershipFunction):
+    def is_valid(self) -> bool:
+        return self.beta < self.gamma and 0 <= self.m <= 1
+
+    def repair(self):
+        if self.beta > self.gamma:
+            self.gamma += self.beta
+            self.beta = self.gamma - self.beta
+            self.gamma -= self.beta
+        if self.m > 1 or self.m < 0:
+            self.m = random.random()
+
     def __init__(self, beta: float, gamma: float, m: float):
         super().__init__()
         self.beta = beta

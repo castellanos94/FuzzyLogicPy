@@ -103,6 +103,7 @@ class MembershipFunctionOptimizer:
         for idx in range(3):
             for state in self.states:
                 state.membership = functions[id(state)][idx]
+                print(state.membership, state.membership.is_valid())
             f = ExpressionEvaluation(self.data, self.logic, tree).eval().fitness
             for v in fitness.values():
                 v[idx] = f
@@ -117,16 +118,17 @@ class MembershipFunctionOptimizer:
                 functions[id(state)] = [self.__random_function(state.cname) for _ in range(3)]
                 fitness[id(state)] = 3 * [0]
         self.current_iteration += 1
-        self.__show(functions, fitness)
-        self.__evaluate(tree, functions, fitness)
-        while self.current_iteration < self.iteration and not any(self.min_value >= v for v in fitness):
-            self.current_iteration += 1
-            print("do something...")
-        max_ = max(fitness[id(self.states[0])])
-        idx = fitness[id(self.states[0])].index(max_)
+        if len(functions) > 0:
+            self.__show(functions, fitness)
+            self.__evaluate(tree, functions, fitness)
+            while self.current_iteration < self.iteration and not any(self.min_value >= v for v in fitness):
+                self.current_iteration += 1
+                print("do something...")
+            max_ = max(fitness[id(self.states[0])])
+            idx = fitness[id(self.states[0])].index(max_)
 
-        for state in self.states:
-            state.membership = functions[id(state)][idx]
+            for state in self.states:
+                state.membership = functions[id(state)][idx]
         f = ExpressionEvaluation(self.data, self.logic, tree).eval().fitness
         print(f)
         return tree
