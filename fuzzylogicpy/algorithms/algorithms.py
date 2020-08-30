@@ -1,6 +1,6 @@
 import pandas as pd
 
-from fuzzylogicpy.core.element import Operator, NodeType, Node
+from fuzzylogicpy.core.elements import Operator, NodeType, Node
 from fuzzylogicpy.core.logic import Logic
 
 
