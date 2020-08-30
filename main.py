@@ -31,15 +31,22 @@ def test_evaluation():
     evaluator.export_data('results/evaluation.xlsx')
 
 
-if __name__ == '__main__':
+def test_MembershipFunctionOptimizer():
     data = pd.read_csv('datasets/tinto.csv')
-    quality = StateNode('high quality', 'quality')
-    alcohol = StateNode('high alcohol', 'alcohol')
+    quality = StateNode('quality', 'quality')
+    alcohol = StateNode('alcohol', 'alcohol')
     ph = StateNode("pH", "pH")
-    states = {quality.label: quality, alcohol.label: alcohol, ph.label: ph}
-    parser = ExpressionParser('(EQV (AND "high alcohol" "pH") "high quality")', states, dict())
+    citric = StateNode("citric_acid", "citric_acid")
+    states = {quality.label: quality, alcohol.label: alcohol, ph.label: ph, citric.label: citric}
+    parser = ExpressionParser('(EQV (AND "alcohol" "pH" "citric_acid") "quality")', states, dict())
     root = parser.parser()
-    mfo = MembershipFunctionOptimizer(data, GMBC(), min_value=1, iteration=10)
+    mfo = MembershipFunctionOptimizer(data, GMBC(), min_value=1, iteration=10,population_size=5)
     print(root, root.fitness)
     mfo.optimizer(root)
+
+    print(root.to_json())
     print(root, root.fitness)
+
+
+if __name__ == '__main__':
+    test_MembershipFunctionOptimizer()
