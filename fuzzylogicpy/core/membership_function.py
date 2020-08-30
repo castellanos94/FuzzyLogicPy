@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 
 class MembershipFunction(ABC):
+    def __init__(self):
+        self.type = self.name()
 
     @abstractmethod
     def evaluate(self, value) -> float:
