@@ -269,3 +269,23 @@ class MembershipFunctionOptimizer:
                 state.membership = functions[id(state)][idx]['F']
             print(fitness)
         return ExpressionEvaluation(self.data, self.logic, tree).eval()
+
+
+class KDFLC:
+    def __init__(self, data: Dict, tree: Operator, logic: Logic, num_pop: int, num_iter: int, num_result: int,
+                 min_truth_value: float,
+                 mut_percentage: float, **kwargs):
+        self.data = data
+        self.predicate = tree
+        self.logic = logic
+        self.num_pop = num_pop
+        self.num_iter = num_iter
+        self.num_result = num_result
+        self.min_truth_value = min_truth_value
+        self.mut_percentage = mut_percentage
+        self.optimizer = MembershipFunctionOptimizer(data, logic, kwargs)
+        self.predicates = []
+        self.generators = Operator.get_nodes_by_type(tree, NodeType.GENERATOR)
+
+        def discovery() -> None:
+            print(self.generators)

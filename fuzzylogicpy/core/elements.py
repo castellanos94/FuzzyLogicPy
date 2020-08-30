@@ -45,7 +45,7 @@ class Node(ABC):
         self.type = None
 
     def __str__(self):
-        return self.label
+        return '"{}"'.format(self.label)
 
     def __repr__(self):
         return self.__str__()
@@ -144,14 +144,12 @@ class StateNode(Node):
 
 
 class GeneratorNode(Node):
-    def __init__(self, depth: int, labels: List[str], operators=List[NodeType]):
-        super(GeneratorNode, self).__init__(str(NodeType.GENERATOR), editable=True)
+    def __init__(self, depth: int, label: str, labels: List[str], operators=List[NodeType]):
+        super(GeneratorNode, self).__init__(label, editable=False)
+        self.type = NodeType.GENERATOR
         self.labels = labels
         self.operators = operators
         self.depth = depth
 
     def add_state(self, state: StateNode):
         self.labels.append(state.label)
-
-    def __str__(self):
-        return '{} {} {} {}'.format(self.label, self.labels, self.operators, self.depth)

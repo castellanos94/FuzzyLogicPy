@@ -5,7 +5,7 @@ import pandas as pd
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer
-from fuzzylogicpy.core.elements import StateNode
+from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType
 from fuzzylogicpy.core.expression_parser import ExpressionParser
 from fuzzylogicpy.core.impl.logics import GMBC
 from fuzzylogicpy.core.impl.memberships import Sigmoid
@@ -49,4 +49,16 @@ def test_MembershipFunctionOptimizer():
 
 
 if __name__ == '__main__':
-    test_MembershipFunctionOptimizer()
+    data = pd.read_csv('datasets/tinto.csv')
+    states = {}
+    for head in data.head():
+        states[head] = StateNode(head, head)
+
+    props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v],
+                          [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT])
+    generators = {props.label: props}
+    print(generators)
+    expression = '(IMP "{}" "quality")'.format(props.label)
+    parser = ExpressionParser(expression, states, generators)
+    root = parser.parser()
+    print(root)
