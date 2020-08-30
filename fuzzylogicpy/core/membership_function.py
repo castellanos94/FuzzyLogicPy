@@ -19,15 +19,6 @@ class MembershipFunction(ABC):
     def is_valid(self) -> bool:
         pass
 
-    @abstractmethod
-    def repair(self):
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def generate_values(**kwargs) -> MembershipFunction:
-        pass
-
     def name(self) -> str:
         return self.__class__.__name__
 
