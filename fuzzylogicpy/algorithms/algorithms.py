@@ -1,6 +1,11 @@
+import copy
+import random
+from typing import Dict, List
+
+import numpy as np
 import pandas as pd
 
-from fuzzylogicpy.core.elements import Operator, NodeType, Node
+from fuzzylogicpy.core.elements import Operator, NodeType, Node, StateNode
 from fuzzylogicpy.core.impl.memberships import FPG
 from fuzzylogicpy.core.logic import Logic
 
@@ -73,22 +78,78 @@ class ExpressionEvaluation:
             raise RuntimeError('Invalid output file format')
 
 
+def generate_membership_function(data: Dict, state: StateNode) -> Dict:
+    min_, max_ = data[state.cname].min(), data[state.cname].max()
+    b = random.uniform(min_, max_)
+    g = random.uniform(b, max_)
+    return {'F': FPG(b, g, random.random()), 'min': min_, 'max': max_}
+
+
+def repair_membership_function(bundle: Dict):
+    membership = bundle['F']
+    if np.isnan(membership.beta):
+        membership.beta = random.random(bundle['min'], bundle['max'])
+    elif np.isnan(membership.gamma):
+        membership.gamma = random.random(bundle['min'], bundle['max'])
+    elif membership.beta > membership.gamma:
+        membership.gamma += membership.beta
+        membership.beta = membership.gamma - membership.beta
+        membership.gamma -= membership.beta
+    if membership.m > 1 or membership.m < 0 or np.isnan(membership.m):
+        membership.m = random.random()
+
+
+def crossover_membership_function(parent_a: FPG, parent_b: FPG) -> List[FPG]:
+    a, b = copy.deepcopy(parent_a), copy.deepcopy(parent_b)
+
+    return [a, b]
+
+
+def mutation_membership_function(mutation_rate: float, eta: float, bundle: Dict) -> None:
+    for key, item in bundle['F'].__dict__.items():
+        if random.random() <= mutation_rate and key != 'type':
+            x = bundle['F'].__dict__.get(key)
+            xl = bundle['min']
+            xu = bundle['max']
+            delta_1 = (x - xl) / (xu - xl)
+            delta_2 = (xu - x) / (xu - xl)
+            rand = random.random()
+            mut_pow = 1.0 / (eta + 1.)
+
+            if rand < 0.5:
+                xy = 1.0 - delta_1
+                val = 2.0 * rand + (1.0 - 2.0 * rand) * xy ** (eta + 1)
+                delta_q = val ** mut_pow - 1.0
+            else:
+                xy = 1.0 - delta_2
+                val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * xy ** (eta + 1)
+                delta_q = 1.0 - pow(val, mut_pow)
+
+            x = x + delta_q * (xu - xl)
+            bundle['F'].__dict__[key] = min(max(x, xl), xu)
+
+
 class MembershipFunctionOptimizer:
 
-    def __init__(self, data: dict, logic, min_value: float = 0.5, population_size: int = 10, iteration: int = 2,
-                 mutation_rate: float = 0.01):
-        self.data = data
-        self.logic = logic
-        self.min_value = min_value
-        self.population_size = population_size
-        self.iteration = iteration
-        self.mutation_rate = mutation_rate
-        self.current_iteration = 0
-        self.states = None
-        while self.population_size % 2 != 0:
-            self.population_size += 1
-        if self.population_size == 0:
-            self.population_size = 2
+    def __init__(self, data: Dict, logic, min_value: float = 0.5, population_size: int = 10, iteration: int = 2,
+                 mutation_rate: float = 0.5,
+                 operators=None):
+        if operators is None:
+            operators = {'repair': repair_membership_function, 'generate': generate_membership_function,
+                         'crossover': crossover_membership_function, 'mutation': mutation_membership_function}
+            self.data = data
+            self.logic = logic
+            self.min_value = min_value
+            self.population_size = population_size
+            self.iteration = iteration
+            self.mutation_rate = mutation_rate
+            self.current_iteration = 0
+            self.states = None
+            self.operators = operators
+            while self.population_size % 2 != 0:
+                self.population_size += 1
+            if self.population_size == 0:
+                self.population_size = 2
 
     def __show(self, functions: dict, fitness: dict):
         print('Showing...')
@@ -96,13 +157,12 @@ class MembershipFunctionOptimizer:
             print(fitness[k], functions[k])
 
     def __evaluate(self, tree: Operator, functions: dict, fitness: dict):
-        for idx in range(3):
+        for idx in range(self.population_size):
             for state in self.states:
-                state.membership = functions[id(state)][idx]
+                state.membership = functions[id(state)][idx]['F']
             f = ExpressionEvaluation(self.data, self.logic, tree).eval().fitness
             for v in fitness.values():
                 v[idx] = f
-        self.__show(functions, fitness)
 
     def optimizer(self, tree: Operator) -> Operator:
         functions = {}
@@ -110,21 +170,28 @@ class MembershipFunctionOptimizer:
         self.states = Operator.get_nodes_by_type(tree, NodeType.STATE)
         for state in self.states:
             if state.membership is None:
-                min_, max_ = self.data[state.cname].min(), self.data[state.cname].max()
-                functions[id(state)] = [FPG.generate_values(min_, max_) for _ in range(3)]
-                fitness[id(state)] = 3 * [0]
+                functions[id(state)] = [self.operators['generate'](self.data, state) for _ in
+                                        range(self.population_size)]
+                fitness[id(state)] = self.population_size * [0]
         self.current_iteration += 1
         if len(functions) > 0:
             self.__show(functions, fitness)
             self.__evaluate(tree, functions, fitness)
-            print(self.current_iteration, "do something...")
-            while self.current_iteration < self.iteration and not any(v >= self.min_value for v in fitness):
+
+            while self.current_iteration < self.iteration and not any(
+                    v >= self.min_value for v in fitness[id(self.states[0])]):
                 self.current_iteration += 1
-                print(self.current_iteration, "do something...")
+                print(self.current_iteration, "working...")
+                for key, item in functions.items():
+                    for v in item:
+                        self.operators['mutation'](self.mutation_rate, 20, v)
+                        self.operators['repair'](v)
+
+                self.__evaluate(tree, functions, fitness)
 
             max_ = max(fitness[id(self.states[0])])
             idx = fitness[id(self.states[0])].index(max_)
 
             for state in self.states:
-                state.membership = functions[id(state)][idx]
+                state.membership = functions[id(state)][idx]['F']
         return ExpressionEvaluation(self.data, self.logic, tree).eval()

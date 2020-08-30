@@ -35,10 +35,11 @@ if __name__ == '__main__':
     data = pd.read_csv('datasets/tinto.csv')
     quality = StateNode('high quality', 'quality')
     alcohol = StateNode('high alcohol', 'alcohol')
-    states = {quality.label: quality, alcohol.label: alcohol}
-    parser = ExpressionParser('(IMP"high alcohol" (NOT "high quality"))', states, dict())
+    ph = StateNode("pH", "pH")
+    states = {quality.label: quality, alcohol.label: alcohol, ph.label: ph}
+    parser = ExpressionParser('(EQV (AND "high alcohol" "pH") "high quality")', states, dict())
     root = parser.parser()
-    mfo = MembershipFunctionOptimizer(data, GMBC(), min_value=0.999, iteration=10)
+    mfo = MembershipFunctionOptimizer(data, GMBC(), min_value=1, iteration=10)
     print(root, root.fitness)
     mfo.optimizer(root)
     print(root, root.fitness)
