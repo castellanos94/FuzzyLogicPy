@@ -1,6 +1,8 @@
 import math
 from functools import reduce
 
+import numpy as np
+
 from fuzzylogicpy.core.logic import Logic
 
 
@@ -60,10 +62,10 @@ class GMBC(Logic):
         return pow(self.imp_(a, b) * self.imp_(b, a), 0.5)
 
     def for_all(self, values) -> float:
-        return pow(math.e, (1 / len(values)) * sum([math.log(v) for v in values if v != 0]))
+        return pow(math.e, (1 / len(values)) * sum([np.log(v) for v in values if v != 0]))
 
     def exist(self, values) -> float:
-        return 1 - pow(math.e, (1 / len(values) * sum([math.log(1 - v) for v in values if v != 0])))
+        return 1 - pow(math.e, ((1 / len(values)) * sum([np.log(1 - v) for v in values if v != 0 and v != 1])))
 
     def and_(self, values) -> float:
         return pow(reduce(lambda x, y: x * y, values), 1 / len(values))

@@ -1,4 +1,4 @@
-import math
+import numpy as np
 
 from fuzzylogicpy.core.membership_function import MembershipFunction
 
@@ -11,7 +11,7 @@ class Sigmoid(MembershipFunction):
 
     def evaluate(self, value) -> float:
         return (1 / (1 + (
-            math.exp(-((math.log(0.99) - math.log(0.01)) / (self.center - self.beta)) * (value - self.center)))))
+            np.exp(-((np.log(0.99) - np.log(0.01)) / (self.center - self.beta)) * (value - self.center)))))
 
     def derive(self, param: str) -> float:
         pass
@@ -26,7 +26,7 @@ class FPG(MembershipFunction):
 
     def evaluate(self, value) -> float:
         sigmoid = pow(Sigmoid(self.gamma, self.beta).evaluate(value), self.m)
-        sigmoid2 = pow(1 - Sigmoid(self.gamma, self.beta).evaluate(value), 1 - m)
+        sigmoid2 = pow(1 - Sigmoid(self.gamma, self.beta).evaluate(value), 1 - self.m)
         m_ = pow(self.m, self.m) * pow((1 - self.m), (1 - self.m))
         return (sigmoid * sigmoid2) / m_
 
