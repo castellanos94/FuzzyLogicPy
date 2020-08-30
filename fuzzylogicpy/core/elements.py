@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import enum
 import json
+import random
 from abc import ABC
-from typing import List
+from typing import List, Dict, Tuple
 
 from fuzzylogicpy.core.membership_function import MembershipFunction
 
@@ -78,13 +79,17 @@ class Operator(Node):
     def replace_node(root: Operator, old_value: Node, new_value: Node) -> bool:
         for idx, v in enumerate(root.children):
             if v == old_value:
-                root.children[idx] = new_value
+                root.children.__setitem__(idx, new_value)
                 return True
+            elif isinstance(v, Operator):
+                return Operator.replace_node(v, old_value, new_value)
         return False
 
     @staticmethod
     def get_nodes_by_type(root: Operator, type_: NodeType) -> List[Node]:
         found = []
+        if type_ == NodeType.GENERATOR and root.type == NodeType.GENERATOR:
+            return [root]
         for node in root.children:
             if node.type == type_:
                 found.append(node)
@@ -144,12 +149,53 @@ class StateNode(Node):
 
 
 class GeneratorNode(Node):
-    def __init__(self, depth: int, label: str, labels: List[str], operators=List[NodeType]):
+    def __init__(self, depth: int, label: str, labels: List[str], operators: List[NodeType],
+                 max_child_number: int = None):
         super(GeneratorNode, self).__init__(label, editable=False)
         self.type = NodeType.GENERATOR
         self.labels = labels
         self.operators = operators
         self.depth = depth
+        if max_child_number is not None and max_child_number >= 2:
+            self.max_child_number = max_child_number
+        else:
+            self.max_child_number = int((len(self.labels) + len(self.operators)) / 2)
 
     def add_state(self, state: StateNode):
         self.labels.append(state.label)
+
+    def __generate_child(self, root: Operator, states: Dict, current_depth: int):
+        if current_depth < self.depth:
+            if random.random() < 0.85:
+                tree = Operator(random.choice(self.operators), editable=True)
+                if tree.type == NodeType.AND or tree.type == NodeType.OR:
+                    children = [self.__generate_child(tree, states, current_depth + 1) for _ in
+                                range(self.max_child_number)]
+                    tree.children = [item[0] for item in children if item[1]]
+                    return tree, True
+                elif tree.type == NodeType.IMP or tree.type == NodeType.EQV:
+                    for _ in range(2):
+                        tree.add_child(self.__generate_child(tree, states, current_depth + 1)[0])
+                    return tree, True
+                elif tree.type == NodeType.NOT:
+                    tree.add_child(self.__generate_child(tree, states, current_depth + 1)[0])
+                    return tree, True
+                else:
+                    raise RuntimeError("Invalid type: " + str(tree.type))
+            else:
+                return self.__generate_state(root, states)
+        else:
+            return self.__generate_state(root, states)
+
+    def __generate_state(self, root: Operator, states: Dict) -> Tuple[StateNode, bool]:
+        choice = states[random.choice(self.labels)]
+        intents = 0
+        if root is not None:
+            while any([child.label == choice.label for child in root.children]) and intents < self.max_child_number:
+                choice = states[random.choice(self.labels)]
+                intents += 1
+                print(intents)
+        return StateNode(choice.label, choice.cname, choice.membership, editable=True), self.max_child_number > intents
+
+    def generate(self, states: Dict) -> Node:
+        return self.__generate_child(None, states, 0)[0]

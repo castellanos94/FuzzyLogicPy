@@ -10,6 +10,7 @@ base_parser = Lark("""
         | not_expr
         | imp_expr
         | eqv_expr
+        | "("token")"
         
     not_expr: "(" not [token | expr] ")"
             

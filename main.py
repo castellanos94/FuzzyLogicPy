@@ -4,7 +4,7 @@ import pandas as pd
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer
+from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer, KDFLC
 from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType
 from fuzzylogicpy.core.expression_parser import ExpressionParser
 from fuzzylogicpy.core.impl.logics import GMBC
@@ -54,11 +54,12 @@ if __name__ == '__main__':
     for head in data.head():
         states[head] = StateNode(head, head)
 
-    props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v],
+    props = GeneratorNode(3, 'properties', [v for v in states.keys() if 'quality' != v],
                           [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT])
     generators = {props.label: props}
-    print(generators)
     expression = '(IMP "{}" "quality")'.format(props.label)
+    expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    print(root)
+    algorithm = KDFLC(data, root, states, GMBC(), 10, 10, 15, 0.8, 0.1)
+    algorithm.discovery()

@@ -272,11 +272,13 @@ class MembershipFunctionOptimizer:
 
 
 class KDFLC:
-    def __init__(self, data: Dict, tree: Operator, logic: Logic, num_pop: int, num_iter: int, num_result: int,
+    def __init__(self, data: Dict, tree: Operator, states: List[StateNode], logic: Logic, num_pop: int, num_iter: int,
+                 num_result: int,
                  min_truth_value: float,
                  mut_percentage: float, **kwargs):
         self.data = data
         self.predicate = tree
+        self.states = states
         self.logic = logic
         self.num_pop = num_pop
         self.num_iter = num_iter
@@ -285,7 +287,24 @@ class KDFLC:
         self.mut_percentage = mut_percentage
         self.optimizer = MembershipFunctionOptimizer(data, logic, kwargs)
         self.predicates = []
-        self.generators = Operator.get_nodes_by_type(tree, NodeType.GENERATOR)
+        self.generators = Operator.get_nodes_by_type(tree,
+                                                     NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else tree
 
-        def discovery() -> None:
-            print(self.generators)
+    def __generate(self) -> Operator:
+        predicate = copy.deepcopy(self.predicate)
+        for gen in Operator.get_nodes_by_type(predicate, NodeType.GENERATOR):
+            new_value = gen.generate(self.states)
+            if gen != predicate:
+                Operator.replace_node(predicate, gen, new_value)
+            else:
+                if new_value.type == NodeType.STATE:
+                    root = Operator(NodeType.NOT)
+                    root.add_child(new_value)
+                    return root
+                return new_value
+        return predicate
+
+    def discovery(self) -> None:
+        population = [self.__generate() for _ in range(self.num_pop)]
+        for idx, ind in enumerate(population):
+            print(idx, ind)
