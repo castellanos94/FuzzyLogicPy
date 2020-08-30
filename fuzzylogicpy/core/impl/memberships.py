@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 
 import numpy as np
@@ -6,6 +8,11 @@ from fuzzylogicpy.core.membership_function import MembershipFunction
 
 
 class Sigmoid(MembershipFunction):
+
+    @staticmethod
+    def generate_values(**kwargs) -> MembershipFunction:
+        pass
+
     def is_valid(self) -> bool:
         pass
 
@@ -26,6 +33,13 @@ class Sigmoid(MembershipFunction):
 
 
 class FPG(MembershipFunction):
+
+    @staticmethod
+    def generate_values(min_: float, max_: float) -> FPG:
+        b = random.uniform(min_, max_)
+        g = random.uniform(b, max_)
+        return FPG(b, g, random.random())
+
     def is_valid(self) -> bool:
         return self.beta < self.gamma and 0 <= self.m <= 1
 

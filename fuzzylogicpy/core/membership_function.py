@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 
@@ -19,6 +21,11 @@ class MembershipFunction(ABC):
 
     @abstractmethod
     def repair(self):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def generate_values(**kwargs) -> MembershipFunction:
         pass
 
     def name(self) -> str:

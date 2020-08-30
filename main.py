@@ -36,9 +36,9 @@ if __name__ == '__main__':
     quality = StateNode('high quality', 'quality')
     alcohol = StateNode('high alcohol', 'alcohol')
     states = {quality.label: quality, alcohol.label: alcohol}
-    parser = ExpressionParser('(IMP"high alcohol" "high quality")', states, dict())
+    parser = ExpressionParser('(IMP"high alcohol" (NOT "high quality"))', states, dict())
     root = parser.parser()
-    mfo = MembershipFunctionOptimizer(data, GMBC())
+    mfo = MembershipFunctionOptimizer(data, GMBC(), min_value=0.999, iteration=10)
     print(root, root.fitness)
     mfo.optimizer(root)
     print(root, root.fitness)

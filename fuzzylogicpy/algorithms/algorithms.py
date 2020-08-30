@@ -1,5 +1,3 @@
-import random
-
 import pandas as pd
 
 from fuzzylogicpy.core.elements import Operator, NodeType, Node
@@ -88,12 +86,6 @@ class MembershipFunctionOptimizer:
         self.current_iteration = 0
         self.states = None
 
-    def __random_function(self, cname: str) -> FPG:
-        min_, max_ = self.data[cname].min(), self.data[cname].max()
-        b = random.uniform(min_, max_)
-        g = random.uniform(b, max_)
-        return FPG(b, g, random.random())
-
     def __show(self, functions: dict, fitness: dict):
         print('Showing...')
         for k in functions.keys():
@@ -103,7 +95,6 @@ class MembershipFunctionOptimizer:
         for idx in range(3):
             for state in self.states:
                 state.membership = functions[id(state)][idx]
-                print(state.membership, state.membership.is_valid())
             f = ExpressionEvaluation(self.data, self.logic, tree).eval().fitness
             for v in fitness.values():
                 v[idx] = f
@@ -115,7 +106,8 @@ class MembershipFunctionOptimizer:
         self.states = Operator.get_nodes_by_type(tree, NodeType.STATE)
         for state in self.states:
             if state.membership is None:
-                functions[id(state)] = [self.__random_function(state.cname) for _ in range(3)]
+                min_, max_ = self.data[state.cname].min(), self.data[state.cname].max()
+                functions[id(state)] = [FPG.generate_values(min_, max_) for _ in range(3)]
                 fitness[id(state)] = 3 * [0]
         self.current_iteration += 1
         if len(functions) > 0:
@@ -123,12 +115,10 @@ class MembershipFunctionOptimizer:
             self.__evaluate(tree, functions, fitness)
             while self.current_iteration < self.iteration and not any(self.min_value >= v for v in fitness):
                 self.current_iteration += 1
-                print("do something...")
+                print(self.current_iteration, "do something...")
             max_ = max(fitness[id(self.states[0])])
             idx = fitness[id(self.states[0])].index(max_)
 
             for state in self.states:
                 state.membership = functions[id(state)][idx]
-        f = ExpressionEvaluation(self.data, self.logic, tree).eval().fitness
-        print(f)
-        return tree
+        return ExpressionEvaluation(self.data, self.logic, tree).eval()
