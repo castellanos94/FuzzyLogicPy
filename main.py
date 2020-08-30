@@ -4,11 +4,11 @@ import pandas as pd
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-from core.algorithms import ExpressionEvaluation
+from algorithms.algorithms import ExpressionEvaluation
 from core.element import StateNode
 from core.expression_parser import ExpressionParser
-from core.logic import GMBC
-from core.membership_function import Sigmoid
+from core.impl.logics import GMBC
+from core.impl.memberships import Sigmoid
 
 
 def print_hi(name):
@@ -33,8 +33,5 @@ if __name__ == '__main__':
     evaluator = ExpressionEvaluation(data, GMBC(), tree)
     print(GMBC())
     print(evaluator.eval(), tree.fitness)
-
-    print(states)
-    print(quality.to_json())
     print(tree.to_json())
     evaluator.export_data('results/evaluation.xlsx')
