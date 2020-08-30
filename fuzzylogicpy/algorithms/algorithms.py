@@ -85,6 +85,10 @@ class MembershipFunctionOptimizer:
         self.mutation_rate = mutation_rate
         self.current_iteration = 0
         self.states = None
+        while self.population_size % 2 != 0:
+            self.population_size += 1
+        if self.population_size == 0:
+            self.population_size = 2
 
     def __show(self, functions: dict, fitness: dict):
         print('Showing...')
@@ -113,9 +117,11 @@ class MembershipFunctionOptimizer:
         if len(functions) > 0:
             self.__show(functions, fitness)
             self.__evaluate(tree, functions, fitness)
-            while self.current_iteration < self.iteration and not any(self.min_value >= v for v in fitness):
+            print(self.current_iteration, "do something...")
+            while self.current_iteration < self.iteration and not any(v >= self.min_value for v in fitness):
                 self.current_iteration += 1
                 print(self.current_iteration, "do something...")
+
             max_ = max(fitness[id(self.states[0])])
             idx = fitness[id(self.states[0])].index(max_)
 
