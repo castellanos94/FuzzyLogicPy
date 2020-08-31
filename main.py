@@ -58,8 +58,9 @@ if __name__ == '__main__':
                           [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT], 3)
     generators = {props.label: props}
     expression = '(IMP "{}" "quality")'.format(props.label)
-    expression = '("properties")'
+    #expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 10, 10, 15, 0.8, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 100, 10, 15, 0.95, 0.1)
     algorithm.discovery()
+    algorithm.export_data('results/discovery.xlsx')

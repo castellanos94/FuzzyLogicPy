@@ -288,6 +288,7 @@ class KDFLC:
         self.predicates = []
         self.generators = Operator.get_nodes_by_type(tree,
                                                      NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else tree
+        self.current_iteration = 0
 
     def __generate(self) -> Operator:
         predicate = copy.deepcopy(self.predicate)
@@ -303,8 +304,37 @@ class KDFLC:
                 return new_value
         return predicate
 
+    def mutation_predicate(self, predicate: Operator) -> None:
+        pass
+
     def discovery(self) -> None:
+        # Generate de population
         population = [self.__generate() for _ in range(self.num_pop)]
+        # Evaluating population
         population = [self.optimizer.optimizer(individual) for individual in population]
-        for v in population:
-            print(v, v.fitness)
+        self.current_iteration = 1
+        # Copying elements to result lists
+        self.predicates = [individual for individual in population if individual.fitness >= self.min_truth_value]
+        # Generational For
+        while self.current_iteration < self.num_iter and len(self.predicates) < self.num_result:
+            print('Iteration: ', self.current_iteration)
+            self.current_iteration += 1
+            population = [self.optimizer.optimizer(individual) for individual in population]
+            self.predicates += [individual for individual in population if
+                                individual.fitness >= self.min_truth_value and individual not in self.predicates]
+            # TODO: For mutation operator is required generator id's
+
+        self.predicates.sort(reverse=True)
+        print('Num results: ', len(self.predicates), ',Max Value: ', self.predicates[0].fitness)
+
+    def export_data(self, output_path: str) -> None:
+        data = []
+        for individual in self.predicates:
+            data.append({'truth_value': individual.fitness, 'predicate': str(individual), 'data': individual.to_json()})
+        data_out = pd.DataFrame(data)
+        if '.csv' in output_path:
+            data_out.to_csv(output_path, index=False)
+        elif '.xlsx' in output_path:
+            data_out.to_excel(output_path, index=False)
+        else:
+            raise RuntimeError('Invalid output file format')
