@@ -18,6 +18,7 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 def test_evaluation():
+    data = pd.read_csv('datasets/tinto.csv')
     quality = StateNode('high quality', 'quality', Sigmoid(5.5, 4))
     alcohol = StateNode('high alcohol', 'alcohol', Sigmoid(11.65, 9))
     states = {quality.label: quality, alcohol.label: alcohol}
@@ -48,7 +49,7 @@ def test_MembershipFunctionOptimizer():
     print(root, root.fitness)
 
 
-if __name__ == '__main__':
+def test_kdflc():
     data = pd.read_csv('datasets/tinto.csv')
     states = {}
     for head in data.head():
@@ -58,9 +59,13 @@ if __name__ == '__main__':
                           [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT], 3)
     generators = {props.label: props}
     expression = '(IMP "{}" "quality")'.format(props.label)
-    #expression = '("properties")'
+    # expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 10, 10, 15, 0.95, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 20, 10, 15, 0.5, 0.1)
     algorithm.discovery()
     algorithm.export_data('results/discovery.xlsx')
+
+
+if __name__ == '__main__':
+    test_evaluation()

@@ -1,4 +1,5 @@
 import copy
+import pathlib
 import random
 from typing import Dict, List
 
@@ -72,6 +73,7 @@ class ExpressionEvaluation:
         return self.tree
 
     def export_data(self, output_path: str):
+        pathlib.Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         if '.csv' in output_path:
             self.data_fuzzy.to_csv(output_path, index=False)
         elif '.xlsx' in output_path:
@@ -334,6 +336,7 @@ class KDFLC:
                 {'truth_value': individual.fitness, 'predicate': str(individual),
                  'data': str(individual.to_json())})
         data_out = pd.DataFrame(data)
+        pathlib.Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         if '.csv' in output_path:
             data_out.to_csv(output_path, index=False)
         elif '.xlsx' in output_path:
