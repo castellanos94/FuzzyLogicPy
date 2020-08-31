@@ -54,8 +54,8 @@ if __name__ == '__main__':
     for head in data.head():
         states[head] = StateNode(head, head)
 
-    props = GeneratorNode(3, 'properties', [v for v in states.keys() if 'quality' != v],
-                          [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT])
+    props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v],
+                          [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT], 3)
     generators = {props.label: props}
     expression = '(IMP "{}" "quality")'.format(props.label)
     expression = '("properties")'

@@ -218,7 +218,6 @@ class MembershipFunctionOptimizer:
             print(fitness, functions[k])
 
     def __evaluate(self, tree: Operator, functions: dict, fitness: List[float]):
-        print(len(fitness))
         for idx in range(len(fitness)):
             for state in self.states:
                 state.membership = functions[id(state)][idx]['F']
@@ -236,7 +235,6 @@ class MembershipFunctionOptimizer:
         self.current_iteration += 1
         if len(functions) > 0:
             self.__evaluate(tree, functions, fitness)
-
             while self.current_iteration < self.iteration and not any(v >= self.min_value for v in fitness):
                 self.current_iteration += 1
                 functions_, fitness_ = {}, None
@@ -267,7 +265,6 @@ class MembershipFunctionOptimizer:
 
             for state in self.states:
                 state.membership = functions[id(state)][idx]['F']
-            print(fitness)
         return ExpressionEvaluation(self.data, self.logic, tree).eval()
 
 
@@ -275,7 +272,8 @@ class KDFLC:
     def __init__(self, data: Dict, tree: Operator, states: List[StateNode], logic: Logic, num_pop: int, num_iter: int,
                  num_result: int,
                  min_truth_value: float,
-                 mut_percentage: float, **kwargs):
+                 mut_percentage: float, adj_min_value: float = 0.0, adj_population_size: int = 3,
+                 adj_iteration: int = 2, adj_mutation_rate: float = 0.1, adj_operators: Dict = None):
         self.data = data
         self.predicate = tree
         self.states = states
@@ -285,7 +283,8 @@ class KDFLC:
         self.num_result = num_result
         self.min_truth_value = min_truth_value
         self.mut_percentage = mut_percentage
-        self.optimizer = MembershipFunctionOptimizer(data, logic, kwargs)
+        self.optimizer = MembershipFunctionOptimizer(data, logic, adj_min_value, adj_population_size, adj_iteration,
+                                                     adj_mutation_rate, adj_operators)
         self.predicates = []
         self.generators = Operator.get_nodes_by_type(tree,
                                                      NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else tree
@@ -306,5 +305,6 @@ class KDFLC:
 
     def discovery(self) -> None:
         population = [self.__generate() for _ in range(self.num_pop)]
-        for idx, ind in enumerate(population):
-            print(idx, ind)
+        population = [self.optimizer.optimizer(individual) for individual in population]
+        for v in population:
+            print(v, v.fitness)

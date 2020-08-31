@@ -133,6 +133,18 @@ class Operator(Node):
     def __str__(self):
         return "({} {})".format(str(self.type), " ".join([str(v) for v in self.children]))
 
+    def __lt__(self, other):
+        return self.fitness < other.fitness
+
+    def __le__(self, other):
+        return self.fitness <= other.fitness
+
+    def __gt__(self, other):
+        return self.fitness > other.fitness
+
+    def __ge__(self, other):
+        return self.fitness >= other.fitness
+
 
 class StateNode(Node):
     def __init__(self, label: str, cname: str, membership: MembershipFunction = None, editable: bool = False):
@@ -194,7 +206,6 @@ class GeneratorNode(Node):
             while any([child.label == choice.label for child in root.children]) and intents < self.max_child_number:
                 choice = states[random.choice(self.labels)]
                 intents += 1
-                print(intents)
         return StateNode(choice.label, choice.cname, choice.membership, editable=True), self.max_child_number > intents
 
     def generate(self, states: Dict) -> Node:
