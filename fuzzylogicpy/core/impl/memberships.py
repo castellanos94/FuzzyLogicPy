@@ -71,13 +71,24 @@ class FPG(MembershipFunction):
             #       e^(g(-b+x)) * (1-m)^(m-1) * ((1 / 1 + e^(c(g-x)) )^(m-1) - 1) * (b-x)
             #  - _______________________________________________________________________
             #                              (1 + e^(c(-b + x))^2
-            result = -1
-            * (
-                np.exp(self.gamma * (-self.beta + value))
-                * pow(1 - m, m - 1)
-                * (pow((1 / (1 + np.exp(self.gamma * (self.beta - value))), m - 1)) - 1)
-                * (self.beta - value)
-            ) / pow(1 + np.exp(self.gamma * (-self.beta + value)), 2)
+            result = (
+                -1
+                * (
+                    np.exp(self.gamma * (-self.beta + value))
+                    * pow(1 - self.m, self.m - 1)
+                    * (
+                        pow(
+                            (
+                                1 / (1 + np.exp(self.gamma * (self.beta - value))),
+                                self.m - 1,
+                            )
+                        )
+                        - 1
+                    )
+                    * (self.beta - value)
+                )
+                / pow(1 + np.exp(self.gamma * (-self.beta + value)), 2)
+            )
         elif param == "b":
             #    ce^(c(x-b)) * (1-m)^(m-1) * m^-m * (( 1/ 1+e^(c(b-x)) )-1)^(m-1)
             #  - ________________________________________________________________
@@ -87,10 +98,11 @@ class FPG(MembershipFunction):
                 * (
                     self.gamma
                     * np.exp(self.gamma * (value - self.beta))
-                    * pow(1 - m, m - 1)
-                    * pow(m, -m)
+                    * pow(1 - self.m, self.m - 1)
+                    * pow(self.m, -self.m)
                     * pow(
-                        (1 / (1 + np.exp(self.gamma * (self.beta - value)))) - 1, m - 1
+                        (1 / (1 + np.exp(self.gamma * (self.beta - value)))) - 1,
+                        self.m - 1,
                     )
                 )
                 / pow(1 + np.exp(self.gamma * (value - self.beta)), 2)
@@ -99,9 +111,9 @@ class FPG(MembershipFunction):
             Sg = Sigmoid(self.gamma, self.beta).evaluate(value)
             #  (1-m)^(1+m) * m^-m * (1 -Sg )^(1-m) * (log(1-m) - log(m) - log(1-Sg) + log(Sg))
             result = (
-                pow(1 - m, m - 1)
-                * pow(m, -m)
-                * pow(1 - Sg, 1 - m)
-                * (np.log(1 - m) - np.log(m) - np.log(1 - Sg) + np.log(Sg))
+                pow(1 - self.m, self.m - 1)
+                * pow(self.m, -self.m)
+                * pow(1 - Sg, 1 - self.m)
+                * (np.log(1 - self.m) - np.log(self.m) - np.log(1 - Sg) + np.log(Sg))
             )
         return result
