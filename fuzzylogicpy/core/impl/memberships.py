@@ -19,8 +19,20 @@ class Sigmoid(MembershipFunction):
         return (1 / (1 + (
             np.exp(-((np.log(0.99) - np.log(0.01)) / (self.center - self.beta)) * (value - self.center)))))
 
-    def derive(self, param: str) -> float:
-        pass
+    def derive(self,value: float, param: str) -> float:
+       
+        if param == 'b':
+            #       ce^(c(b+x))
+            #  - _________________
+            #    (e^(bc) + e^(cx))^2
+            result = -1 * (self.center * np.exp(self.center *(self.beta + value))) / \
+            np.power((np.exp(self.beta*self.center) + np.exp(self.center*value)), 2)
+        elif param == 'c':
+            #      b - x * e^(c(x-b))
+            #  - _______________________
+            #    ( e^(c * (x-b)) + 1 )^2
+            result = -1 * ((self.beta - value) * np.exp(self.center * (value - self.beta))) / \
+            np.power((np.exp(self.center * (value - self.beta))) + 1, 2)
 
 
 class FPG(MembershipFunction):
@@ -41,4 +53,16 @@ class FPG(MembershipFunction):
         return (sigmoid * sigmoid2) / m_
 
     def derive(self, param: str) -> float:
-        pass
+        if param == 'g':
+        #       e^(g(-b+x)) * (1-m)^(m-1) * ((1 / 1 + e^(c(g-x)) )^(m-1) - 1) * (b-x)
+        #  - _______________________________________________________________________
+        #                              (1 + e^(c(-b + x))^2
+            pass
+        elif param == 'b':
+        #    ce^(c(x-b)) * (1-m)^(m-1) * m^-m * (( 1/ 1+e^(c(b-x)) )-1)^(m-1)
+        #  - ________________________________________________________________
+        #                       (1 + e^(c(x-b)))2
+            pass
+        elif param == 'm':
+        #  (1-m)^(1+m) * m^-m * (1 -Sg )^(1-m) * (log(1-m) - log(m) - log(1-Sg) + log(Sg))   
+            pass
