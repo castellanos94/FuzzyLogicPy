@@ -52,7 +52,7 @@ class Node(ABC):
         return self.__str__()
 
     def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=False)
 
 
 class Operator(Node):

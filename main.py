@@ -61,6 +61,6 @@ if __name__ == '__main__':
     #expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 100, 10, 15, 0.95, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 10, 10, 15, 0.95, 0.1)
     algorithm.discovery()
     algorithm.export_data('results/discovery.xlsx')

@@ -330,7 +330,9 @@ class KDFLC:
     def export_data(self, output_path: str) -> None:
         data = []
         for individual in self.predicates:
-            data.append({'truth_value': individual.fitness, 'predicate': str(individual), 'data': individual.to_json()})
+            data.append(
+                {'truth_value': individual.fitness, 'predicate': str(individual),
+                 'data': str(individual.to_json())})
         data_out = pd.DataFrame(data)
         if '.csv' in output_path:
             data_out.to_csv(output_path, index=False)
