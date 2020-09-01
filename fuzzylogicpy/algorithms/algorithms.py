@@ -222,10 +222,11 @@ class MembershipFunctionOptimizer:
     def __evaluate(self, tree: Operator, functions: dict, fitness: List[float]):
         for idx in range(len(fitness)):
             for state in self.states:
-                state.membership = functions[id(state)][idx]['F']
+                if state.membership is None:
+                    state.membership = functions[id(state)][idx]['F']
             fitness[idx] = ExpressionEvaluation(self.data, self.logic, tree).eval().fitness
 
-    def optimizer(self, tree: Operator) -> Operator:
+    def optimize(self, tree: Operator) -> Operator:
         functions = {}
         fitness = []
         self.states = Operator.get_nodes_by_type(tree, NodeType.STATE)
@@ -234,6 +235,7 @@ class MembershipFunctionOptimizer:
                 functions[id(state)] = [self.operators['generate'](self.data, state) for _ in
                                         range(self.population_size)]
                 fitness = self.population_size * [0]
+
         self.current_iteration += 1
         if len(functions) > 0:
             self.__evaluate(tree, functions, fitness)
@@ -266,12 +268,13 @@ class MembershipFunctionOptimizer:
             idx = fitness.index(max_)
 
             for state in self.states:
-                state.membership = functions[id(state)][idx]['F']
+                if state.membership is None:
+                    state.membership = functions[id(state)][idx]['F']
         return ExpressionEvaluation(self.data, self.logic, tree).eval()
 
 
 class KDFLC:
-    def __init__(self, data: Dict, tree: Operator, states: List[StateNode], logic: Logic, num_pop: int, num_iter: int,
+    def __init__(self, data: Dict, tree: Operator, states: Dict, logic: Logic, num_pop: int, num_iter: int,
                  num_result: int,
                  min_truth_value: float,
                  mut_percentage: float, adj_min_value: float = 0.0, adj_population_size: int = 3,
@@ -289,7 +292,7 @@ class KDFLC:
                                                      adj_mutation_rate, adj_operators)
         self.predicates = []
         self.generators = Operator.get_nodes_by_type(tree,
-                                                     NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else tree
+                                                     NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else [tree]
         self.current_iteration = 0
 
     def __generate(self) -> Operator:
@@ -306,27 +309,56 @@ class KDFLC:
                 return new_value
         return predicate
 
-    def mutation_predicate(self, predicate: Operator) -> None:
-        pass
+    def mutation_predicate(self, predicate: Operator) -> Operator:
+        if random.random() <= self.mut_percentage:
+            candidate = random.choice(Operator.get_editable_nodes(predicate))
+            owner = [gen for gen in self.generators if gen.label == candidate.owner_generator][0]
+            if candidate.type == NodeType.AND:
+                candidate.type = NodeType.OR
+            elif candidate.type == NodeType.OR:
+                candidate.type = NodeType.AND
+            elif candidate.type == NodeType.IMP:
+                candidate.type = NodeType.EQV
+            elif candidate.type == NodeType.EQV:
+                candidate.type = NodeType.IMP
+            elif candidate.type == NodeType.STATE:
+                st = copy.deepcopy(self.states[random.choice(owner.labels)])
+                st.editable = True
+                st.owner_generator = owner.label
+                Operator.replace_node(predicate, candidate, st)
+            elif candidate.type == NodeType.NOT:
+                pass
+            else:
+                raise RuntimeError('Unknown type: ' + str(candidate.type))
+            self.optimizer.optimize(predicate)
+        return predicate
 
     def discovery(self) -> None:
         # Generate de population
         population = [self.__generate() for _ in range(self.num_pop)]
         # Evaluating population
-        population = [self.optimizer.optimizer(individual) for individual in population]
+        population = [self.optimizer.optimize(individual) for individual in population]
         self.current_iteration = 1
         # Copying elements to result lists
         self.predicates = [individual for individual in population if individual.fitness >= self.min_truth_value]
         # Generational For
         while self.current_iteration < self.num_iter and len(self.predicates) < self.num_result:
-            print('Iteration: ', self.current_iteration)
+            print('Iteration: ', self.current_iteration, ', Bag: ', len(self.predicates))
             self.current_iteration += 1
-            population = [self.optimizer.optimizer(individual) for individual in population]
+            population = [self.optimizer.optimize(individual) for individual in population]
             self.predicates += [individual for individual in population if
                                 individual.fitness >= self.min_truth_value and individual not in self.predicates]
-            # TODO: For mutation operator is required generator id's
+            # Mutation  and Evaluation predicate
+            population = [self.mutation_predicate(item) for item in population]
+            # TODO: To crossover individuals apply mutation, at that case crossover must be evaluate the individuals
+            #  generated
+
+            self.predicates += [individual for individual in population if
+                                individual.fitness >= self.min_truth_value and individual not in self.predicates]
 
         self.predicates.sort(reverse=True)
+        if len(self.predicates) == 0:
+            self.predicates.append(max(population))
         print('Num results: ', len(self.predicates), ',Max Value: ', self.predicates[0].fitness)
 
     def export_data(self, output_path: str) -> None:

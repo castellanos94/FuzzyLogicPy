@@ -173,13 +173,11 @@ class GeneratorNode(Node):
         else:
             self.max_child_number = int((len(self.labels) + len(self.operators)) / 2)
 
-    def add_state(self, state: StateNode):
-        self.labels.append(state.label)
-
     def __generate_child(self, root: Operator, states: Dict, current_depth: int):
         if current_depth < self.depth:
             if random.random() < 0.85:
                 tree = Operator(random.choice(self.operators), editable=True)
+                tree.owner_generator = self.label
                 if tree.type == NodeType.AND or tree.type == NodeType.OR:
                     children = [self.__generate_child(tree, states, current_depth + 1) for _ in
                                 range(self.max_child_number)]
@@ -206,7 +204,9 @@ class GeneratorNode(Node):
             while any([child.label == choice.label for child in root.children]) and intents < self.max_child_number:
                 choice = states[random.choice(self.labels)]
                 intents += 1
-        return StateNode(choice.label, choice.cname, choice.membership, editable=True), self.max_child_number > intents
+        state = StateNode(choice.label, choice.cname, choice.membership, editable=True)
+        state.owner_generator = self.label
+        return state, self.max_child_number > intents
 
     def generate(self, states: Dict) -> Node:
         return self.__generate_child(None, states, 0)[0]

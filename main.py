@@ -1,4 +1,5 @@
 # This is a sample Python script.
+import random
 
 import pandas as pd
 
@@ -45,7 +46,7 @@ def test_MembershipFunctionOptimizer():
     root = parser.parser()
     mfo = MembershipFunctionOptimizer(data, GMBC())
     print(root, root.fitness)
-    mfo.optimizer(root)
+    mfo.optimize(root)
     print(root, root.fitness)
 
 
@@ -55,17 +56,26 @@ def test_kdflc():
     for head in data.head():
         states[head] = StateNode(head, head)
 
-    props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v],
+    props = GeneratorNode(1, 'properties', [v for v in states.keys() if 'quality' != v],
                           [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT], 3)
     generators = {props.label: props}
     expression = '(IMP "{}" "quality")'.format(props.label)
-    # expression = '("properties")'
+    expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 20, 10, 15, 0.5, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 20, 3, 30, 0.5, 0.1)
     algorithm.discovery()
-    algorithm.export_data('results/discovery.xlsx')
+    for item in algorithm.predicates:
+        print(item.fitness, item)
+    population = [algorithm.optimizer.optimize(individual) for individual in algorithm.predicates]
+    print('After re evaluation')
+    for item in population:
+        print(item.fitness, item)
+
+    #algorithm.export_data('results/discovery.xlsx')
 
 
 if __name__ == '__main__':
-    test_evaluation()
+    #test_evaluation()
+    random.seed(1)
+    test_kdflc()
