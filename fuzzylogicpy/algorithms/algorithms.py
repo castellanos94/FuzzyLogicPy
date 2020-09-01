@@ -322,10 +322,12 @@ class KDFLC:
             elif candidate.type == NodeType.EQV:
                 candidate.type = NodeType.IMP
             elif candidate.type == NodeType.STATE:
-                st = copy.deepcopy(self.states[random.choice(owner.labels)])
-                st.editable = True
-                st.owner_generator = owner.label
-                Operator.replace_node(predicate, candidate, st)
+                st = self.states[random.choice(owner.labels)]
+                if not any([st.label == item.label for item in Operator.get_father(predicate, candidate).children]):
+                    st = copy.deepcopy(st)
+                    st.editable = True
+                    st.owner_generator = owner.label
+                    Operator.replace_node(predicate, candidate, st)
             elif candidate.type == NodeType.NOT:
                 pass
             else:
@@ -341,9 +343,16 @@ class KDFLC:
         self.current_iteration = 1
         # Copying elements to result lists
         self.predicates = [individual for individual in population if individual.fitness >= self.min_truth_value]
+        for individual in self.predicates:
+            print(individual.fitness, individual)
         # Generational For
         while self.current_iteration < self.num_iter and len(self.predicates) < self.num_result:
-            print('Iteration: ', self.current_iteration, ', Bag: ', len(self.predicates))
+            print('Iteration: ', self.current_iteration, ', Bag: ', len(self.predicates), ', pop: ', len(population))
+            # Remove and incorporate new predicates
+            for individual in self.predicates:
+                if individual in population:
+                    population.remove(individual)
+                    population.append(self.optimizer.optimize(self.__generate()))
             self.current_iteration += 1
             population = [self.optimizer.optimize(individual) for individual in population]
             self.predicates += [individual for individual in population if

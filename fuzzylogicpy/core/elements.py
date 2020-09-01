@@ -4,7 +4,7 @@ import enum
 import json
 import random
 from abc import ABC
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 from fuzzylogicpy.core.membership_function import MembershipFunction
 
@@ -74,6 +74,19 @@ class Operator(Node):
                 if v != -1:
                     return v
         return -1
+
+    @staticmethod
+    def get_father(root: Operator, node: Node):
+        if root == node:
+            return root
+        for child in root.children:
+            if child == node:
+                return root
+            elif isinstance(child, Operator):
+                v = Operator.get_father(child, node)
+                if v is not None:
+                    return v
+        return None
 
     @staticmethod
     def replace_node(root: Operator, old_value: Node, new_value: Node) -> bool:
@@ -179,17 +192,19 @@ class GeneratorNode(Node):
                 tree = Operator(random.choice(self.operators), editable=True)
                 tree.owner_generator = self.label
                 if tree.type == NodeType.AND or tree.type == NodeType.OR:
-                    children = [self.__generate_child(tree, states, current_depth + 1) for _ in
-                                range(self.max_child_number)]
-                    tree.children = [item[0] for item in children if item[1]]
-                    return tree, True
+                    # children = [self.__generate_child(tree, states, current_depth + 1) for _ in
+                    #           range(self.max_child_number)]
+                    for _ in range(int(random.uniform(2, self.max_child_number))):
+                        tree.add_child(self.__generate_child(tree, states, current_depth + 1))
+                    # tree.children = [item[0] for item in children if item[1]]
+                    return tree
                 elif tree.type == NodeType.IMP or tree.type == NodeType.EQV:
                     for _ in range(2):
-                        tree.add_child(self.__generate_child(tree, states, current_depth + 1)[0])
-                    return tree, True
+                        tree.add_child(self.__generate_child(tree, states, current_depth + 1))
+                    return tree
                 elif tree.type == NodeType.NOT:
-                    tree.add_child(self.__generate_child(tree, states, current_depth + 1)[0])
-                    return tree, True
+                    tree.add_child(self.__generate_child(tree, states, current_depth + 1))
+                    return tree
                 else:
                     raise RuntimeError("Invalid type: " + str(tree.type))
             else:
@@ -197,7 +212,7 @@ class GeneratorNode(Node):
         else:
             return self.__generate_state(root, states)
 
-    def __generate_state(self, root: Operator, states: Dict) -> Tuple[StateNode, bool]:
+    def __generate_state(self, root: Operator, states: Dict) -> StateNode:
         choice = states[random.choice(self.labels)]
         intents = 0
         if root is not None:
@@ -206,7 +221,8 @@ class GeneratorNode(Node):
                 intents += 1
         state = StateNode(choice.label, choice.cname, choice.membership, editable=True)
         state.owner_generator = self.label
-        return state, self.max_child_number > intents
+
+        return state
 
     def generate(self, states: Dict) -> Node:
-        return self.__generate_child(None, states, 0)[0]
+        return self.__generate_child(None, states, 0)

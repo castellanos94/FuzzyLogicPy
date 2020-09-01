@@ -60,22 +60,18 @@ def test_kdflc():
                           [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT], 3)
     generators = {props.label: props}
     expression = '(IMP "{}" "quality")'.format(props.label)
-    expression = '("properties")'
+    #expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 20, 3, 30, 0.5, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 50, 10, 30, 0.5, 0.1)
     algorithm.discovery()
     for item in algorithm.predicates:
         print(item.fitness, item)
-    population = [algorithm.optimizer.optimize(individual) for individual in algorithm.predicates]
-    print('After re evaluation')
-    for item in population:
-        print(item.fitness, item)
 
-    #algorithm.export_data('results/discovery.xlsx')
+    # algorithm.export_data('results/discovery.xlsx')
 
 
 if __name__ == '__main__':
-    #test_evaluation()
+    # test_evaluation()
     random.seed(1)
     test_kdflc()
