@@ -192,6 +192,12 @@ def mutation_membership_function(mutation_rate: float, eta: float, bundle: Dict,
             bundle['F'].__dict__[key] = min(max(x, xl), xu)
 
 
+def __show(functions: dict, fitness: List[float]):
+    print('Showing...')
+    for k in functions.keys():
+        print(fitness, functions[k])
+
+
 class MembershipFunctionOptimizer:
 
     def __init__(self, data: Dict, logic, min_value: float = 0.5, population_size: int = 3, iteration: int = 2,
@@ -213,11 +219,6 @@ class MembershipFunctionOptimizer:
                 self.population_size += 1
             if self.population_size < 4:
                 self.population_size = 4
-
-    def __show(self, functions: dict, fitness: List[float]):
-        print('Showing...')
-        for k in functions.keys():
-            print(fitness, functions[k])
 
     def __evaluate(self, tree: Operator, functions: dict, fitness: List[float]):
         for idx in range(len(fitness)):
