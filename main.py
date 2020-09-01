@@ -63,11 +63,11 @@ def test_kdflc():
     generators = {props.label: props, category.label: category}
     expression = '(IMP "{}" "{}")'.format(props.label, category.label)
     # expression = '(IMP "{}" "quality")'.format(props.label)
-
+    # expression = '(IMP "alcohol" "quality")'
     # expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 10, 5, 20, 0.5, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 50, 10, 15, 0.95, 0.1)
     algorithm.discovery()
     for item in algorithm.predicates:
         print(item.fitness, item, 'Grade: ', Operator.get_grade(item))

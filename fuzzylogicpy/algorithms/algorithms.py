@@ -320,58 +320,61 @@ class KDFLC:
 
     def mutation_predicate(self, predicate: Operator) -> Operator:
         if random.random() <= self.mut_percentage:
-            candidate = random.choice(Operator.get_editable_nodes(predicate))
-            owner = [gen for gen in self.generators if gen.label == candidate.owner_generator][0]
-            if candidate.type == NodeType.AND:
-                candidate.type = NodeType.OR
-            elif candidate.type == NodeType.OR:
-                candidate.type = NodeType.AND
-            elif candidate.type == NodeType.IMP:
-                candidate.type = NodeType.EQV
-            elif candidate.type == NodeType.EQV:
-                candidate.type = NodeType.IMP
-            elif candidate.type == NodeType.STATE:
-                st = self.states[random.choice(owner.labels)]
-                if not any([st.label == item.label for item in Operator.get_father(predicate, candidate).children]):
-                    st = copy.deepcopy(st)
-                    st.editable = True
-                    st.owner_generator = owner.label
-                    Operator.replace_node(predicate, candidate, st)
-            elif candidate.type == NodeType.NOT:
-                pass
-            else:
-                raise RuntimeError('Unknown type: ' + str(candidate.type))
-            self.optimizer.optimize(predicate)
+            editable = Operator.get_editable_nodes(predicate)
+            if len(editable) > 0:
+                candidate = random.choice(editable)
+                owner = [gen for gen in self.generators if gen.label == candidate.owner_generator][0]
+                if candidate.type == NodeType.AND:
+                    candidate.type = NodeType.OR
+                elif candidate.type == NodeType.OR:
+                    candidate.type = NodeType.AND
+                elif candidate.type == NodeType.IMP:
+                    candidate.type = NodeType.EQV
+                elif candidate.type == NodeType.EQV:
+                    candidate.type = NodeType.IMP
+                elif candidate.type == NodeType.STATE:
+                    st = self.states[random.choice(owner.labels)]
+                    if not any([st.label == item.label for item in Operator.get_father(predicate, candidate).children]):
+                        st = copy.deepcopy(st)
+                        st.editable = True
+                        st.owner_generator = owner.label
+                        Operator.replace_node(predicate, candidate, st)
+                elif candidate.type == NodeType.NOT:
+                    pass
+                else:
+                    raise RuntimeError('Unknown type: ' + str(candidate.type))
+                self.optimizer.optimize(predicate)
         return predicate
 
     def crossover(self, a: Operator, b: Operator) -> List[Operator]:
         a_edit = Operator.get_editable_nodes(a)
         b_edit = Operator.get_editable_nodes(b)
-        a_choice = random.choice(a_edit)
-
-        b_choice = random.choice(b_edit)
-        b_max_depth = [gen for gen in self.generators if gen.label == b_choice.owner_generator][0].depth
-
-        b_grade = Operator.get_grade(b_choice)
-        father = Operator.get_father(a, a_choice)
-        father_depth = Operator.dfs(a, father)
-        intents = 1
-        while father_depth + b_grade > b_max_depth and intents < len(b_edit):
-            b_choice = random.choice(b_edit)
-            b_grade = Operator.get_grade(b_choice)
-            intents += 1
-        Operator.replace_node(father, a_choice, b_choice)
-
-        a_depth, grade = Operator.dfs(a, a_choice), Operator.get_grade(a_choice)
-        a_max_depth = [gen for gen in self.generators if gen.label == a_choice.owner_generator][0].depth
-        father = Operator.get_father(b, b_choice)
-        father_depth = Operator.dfs(b, father)
-        intents = 1
-
-        while father_depth + grade > a_max_depth and intents < len(a_edit):
+        if len(a_edit) > 0 and len(b_edit) > 0:
             a_choice = random.choice(a_edit)
-            grade = Operator.get_grade(a_choice)
-            intents += 1
+
+            b_choice = random.choice(b_edit)
+            b_max_depth = [gen for gen in self.generators if gen.label == b_choice.owner_generator][0].depth
+
+            b_grade = Operator.get_grade(b_choice)
+            father = Operator.get_father(a, a_choice)
+            father_depth = Operator.dfs(a, father)
+            intents = 1
+            while father_depth + b_grade > b_max_depth and intents < len(b_edit):
+                b_choice = random.choice(b_edit)
+                b_grade = Operator.get_grade(b_choice)
+                intents += 1
+            Operator.replace_node(father, a_choice, b_choice)
+
+            a_depth, grade = Operator.dfs(a, a_choice), Operator.get_grade(a_choice)
+            a_max_depth = [gen for gen in self.generators if gen.label == a_choice.owner_generator][0].depth
+            father = Operator.get_father(b, b_choice)
+            father_depth = Operator.dfs(b, father)
+            intents = 1
+
+            while father_depth + grade > a_max_depth and intents < len(a_edit):
+                a_choice = random.choice(a_edit)
+                grade = Operator.get_grade(a_choice)
+                intents += 1
         return [self.optimizer.optimize(a), self.optimizer.optimize(b)]
 
     def discovery(self) -> None:
