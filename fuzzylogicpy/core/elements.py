@@ -93,7 +93,6 @@ class Operator(Node):
         for idx, v in enumerate(root.children):
             if v == old_value:
                 root.children.__setitem__(idx, new_value)
-                #root.children[idx] = new_value
                 return True
             elif isinstance(v, Operator):
                 if Operator.replace_node(v, old_value, new_value):
