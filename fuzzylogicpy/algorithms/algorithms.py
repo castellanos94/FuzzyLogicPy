@@ -273,6 +273,14 @@ class MembershipFunctionOptimizer:
         return ExpressionEvaluation(self.data, self.logic, tree).eval()
 
 
+def is_valid(individual):
+    if isinstance(individual, Operator):
+        states_labels = [item.label for item in individual.children if item.type == NodeType.STATE]
+        return len(set(states_labels)) == len(states_labels)
+    else:
+        return True
+
+
 class KDFLC:
     def __init__(self, data: Dict, tree: Operator, states: Dict, logic: Logic, num_pop: int, num_iter: int,
                  num_result: int,
@@ -297,7 +305,8 @@ class KDFLC:
 
     def __generate(self) -> Operator:
         predicate = copy.deepcopy(self.predicate)
-        for gen in Operator.get_nodes_by_type(predicate, NodeType.GENERATOR):
+        genes = Operator.get_nodes_by_type(predicate, NodeType.GENERATOR)
+        for gen in genes:
             new_value = gen.generate(self.states)
             if gen != predicate:
                 Operator.replace_node(predicate, gen, new_value)
@@ -335,6 +344,36 @@ class KDFLC:
             self.optimizer.optimize(predicate)
         return predicate
 
+    def crossover(self, a: Operator, b: Operator) -> List[Operator]:
+        a_edit = Operator.get_editable_nodes(a)
+        b_edit = Operator.get_editable_nodes(b)
+        a_choice = random.choice(a_edit)
+
+        b_choice = random.choice(b_edit)
+        b_max_depth = [gen for gen in self.generators if gen.label == b_choice.owner_generator][0].depth
+
+        b_grade = Operator.get_grade(b_choice)
+        father = Operator.get_father(a, a_choice)
+        father_depth = Operator.dfs(a, father)
+        intents = 1
+        while father_depth + b_grade > b_max_depth and intents < len(b_edit):
+            b_choice = random.choice(b_edit)
+            b_grade = Operator.get_grade(b_choice)
+            intents += 1
+        Operator.replace_node(father, a_choice, b_choice)
+
+        a_depth, grade = Operator.dfs(a, a_choice), Operator.get_grade(a_choice)
+        a_max_depth = [gen for gen in self.generators if gen.label == a_choice.owner_generator][0].depth
+        father = Operator.get_father(b, b_choice)
+        father_depth = Operator.dfs(b, father)
+        intents = 1
+
+        while father_depth + grade > a_max_depth and intents < len(a_edit):
+            a_choice = random.choice(a_edit)
+            grade = Operator.get_grade(a_choice)
+            intents += 1
+        return [self.optimizer.optimize(a), self.optimizer.optimize(b)]
+
     def discovery(self) -> None:
         # Generate de population
         population = [self.__generate() for _ in range(self.num_pop)]
@@ -343,27 +382,39 @@ class KDFLC:
         self.current_iteration = 1
         # Copying elements to result lists
         self.predicates = [individual for individual in population if individual.fitness >= self.min_truth_value]
+        # removing elements from list
         for individual in self.predicates:
-            print(individual.fitness, individual)
+            population.remove(individual)
         # Generational For
         while self.current_iteration < self.num_iter and len(self.predicates) < self.num_result:
-            print('Iteration: ', self.current_iteration, ', Bag: ', len(self.predicates), ', pop: ', len(population))
-            # Remove and incorporate new predicates
-            for individual in self.predicates:
-                if individual in population:
-                    population.remove(individual)
-                    population.append(self.optimizer.optimize(self.__generate()))
+            # Incorporating new predicates
+            for _ in range(int(self.num_pop - len(population))):
+                population.append(self.optimizer.optimize(self.__generate()))
+            print('Iteration: ', self.current_iteration, ', Results: ', len(self.predicates))
             self.current_iteration += 1
-            population = [self.optimizer.optimize(individual) for individual in population]
-            self.predicates += [individual for individual in population if
-                                individual.fitness >= self.min_truth_value and individual not in self.predicates]
-            # Mutation  and Evaluation predicate
-            population = [self.mutation_predicate(item) for item in population]
-            # TODO: To crossover individuals apply mutation, at that case crossover must be evaluate the individuals
-            #  generated
+            # population = [self.optimizer.optimize(individual) for individual in population]
+            # Random Selection and copy parents to modification
+            # pt_ = [copy.deepcopy(random.choice(population)) for _ in range(int(len(population) / 2))]
+            pt_ = []
+            n_ = int(len(population) / 2)
+            for idx in range(n_):
+                v = random.choice(population)
+                pt_.append(v)
+                population.remove(v)
 
-            self.predicates += [individual for individual in population if
-                                individual.fitness >= self.min_truth_value and individual not in self.predicates]
+            qt_ = []
+            idx = 0
+            while idx < len(pt_):
+                qt_ += self.crossover(pt_[idx], pt_[idx + 1 if idx + 1 < len(pt_) else 0])
+                idx += 2
+            # Mutation  and Evaluation predicate
+            qt_ = [self.mutation_predicate(item) for item in qt_]
+            self.predicates += [individual for individual in qt_ if
+                                individual.fitness >= self.min_truth_value and individual not in self.predicates
+                                and is_valid(individual)]
+            population += [item for item in qt_ if is_valid(item) and item not in self.predicates]
+            if len(population) > self.num_pop:
+                population = population[:self.num_pop]
 
         self.predicates.sort(reverse=True)
         if len(self.predicates) == 0:

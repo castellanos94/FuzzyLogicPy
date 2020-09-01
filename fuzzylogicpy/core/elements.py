@@ -93,10 +93,22 @@ class Operator(Node):
         for idx, v in enumerate(root.children):
             if v == old_value:
                 root.children.__setitem__(idx, new_value)
+                #root.children[idx] = new_value
                 return True
             elif isinstance(v, Operator):
-                return Operator.replace_node(v, old_value, new_value)
+                if Operator.replace_node(v, old_value, new_value):
+                    return True
         return False
+
+    @staticmethod
+    def get_grade(root: Node) -> int:
+        if root.type == NodeType.STATE:
+            return 0
+        if isinstance(root, Operator):
+            child = []
+            for c in root.children:
+                child.append(Operator.get_grade(c) + 1)
+            return max(child)
 
     @staticmethod
     def get_nodes_by_type(root: Operator, type_: NodeType) -> List[Node]:

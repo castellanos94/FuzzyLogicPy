@@ -6,7 +6,7 @@ import pandas as pd
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer, KDFLC
-from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType
+from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType, Operator
 from fuzzylogicpy.core.expression_parser import ExpressionParser
 from fuzzylogicpy.core.impl.logics import GMBC
 from fuzzylogicpy.core.impl.memberships import Sigmoid
@@ -56,17 +56,21 @@ def test_kdflc():
     for head in data.head():
         states[head] = StateNode(head, head)
 
-    props = GeneratorNode(1, 'properties', [v for v in states.keys() if 'quality' != v],
-                          [NodeType.AND, NodeType.OR, NodeType.IMP, NodeType.EQV, NodeType.NOT], 3)
-    generators = {props.label: props}
-    expression = '(IMP "{}" "quality")'.format(props.label)
-    #expression = '("properties")'
+    props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v and 'alcohol' != v],
+                          [NodeType.IMP, NodeType.NOT], 3)
+    category = GeneratorNode(1, 'category', [v for v in states.keys() if 'quality' == v or 'alcohol' == v],
+                             [NodeType.AND, NodeType.NOT])
+    generators = {props.label: props, category.label: category}
+    expression = '(IMP "{}" "{}")'.format(props.label, category.label)
+    # expression = '(IMP "{}" "quality")'.format(props.label)
+
+    # expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 50, 10, 30, 0.5, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 10, 5, 20, 0.5, 0.1)
     algorithm.discovery()
     for item in algorithm.predicates:
-        print(item.fitness, item)
+        print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
 
     # algorithm.export_data('results/discovery.xlsx')
 
