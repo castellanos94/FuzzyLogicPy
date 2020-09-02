@@ -68,7 +68,7 @@ def test_kdflc():
     # expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 50, 10, 15, 0.95, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 50, 10, 30, 0.95, 0.1)
     algorithm.discovery()
     for item in algorithm.predicates:
         print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
@@ -76,10 +76,7 @@ def test_kdflc():
     # algorithm.export_data('results/discovery.xlsx')
 
 
-if __name__ == '__main__':
-    # test_evaluation()
-    random.seed(1)
-    # test_kdflc()
+def test_parser():
     data = pd.read_csv('datasets/tinto.csv')
     quality = StateNode('high quality', 'quality', Sigmoid(5.5, 4))
     alcohol = StateNode('high alcohol', 'alcohol', Sigmoid(11.65, 9))
@@ -93,3 +90,9 @@ if __name__ == '__main__':
     print(evaluation.states['high alcohol'])
     executor = QueryExecutor(evaluation)
     executor.execute()
+
+
+if __name__ == '__main__':
+    # test_evaluation()
+    random.seed(1)
+    test_kdflc()

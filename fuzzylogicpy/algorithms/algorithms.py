@@ -305,8 +305,8 @@ class KDFLC:
     def __generate(self) -> Operator:
         predicate = copy.deepcopy(self.predicate)
         genes = Operator.get_nodes_by_type(predicate, NodeType.GENERATOR)
-        for gen in genes:
-            new_value = gen.generate(self.states)
+        for idx, gen in enumerate(genes):
+            new_value = gen.generate(self.states, True if idx < int(len(genes) / 2) else False)
             if gen != predicate:
                 Operator.replace_node(predicate, gen, new_value)
             else:

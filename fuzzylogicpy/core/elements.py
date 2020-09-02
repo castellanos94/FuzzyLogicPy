@@ -197,24 +197,21 @@ class GeneratorNode(Node):
         else:
             self.max_child_number = int((len(self.labels) + len(self.operators)) / 2)
 
-    def __generate_child(self, root: Operator, states: Dict, current_depth: int):
+    def __generate_child(self, root: Operator, states: Dict, current_depth: int, balanced: bool = False):
         if current_depth < self.depth:
-            if random.random() < 0.85:
+            if random.random() < 0.85 or balanced:
                 tree = Operator(random.choice(self.operators), editable=True)
                 tree.owner_generator = self.label
                 if tree.type == NodeType.AND or tree.type == NodeType.OR:
-                    # children = [self.__generate_child(tree, states, current_depth + 1) for _ in
-                    #           range(self.max_child_number)]
                     for _ in range(int(random.uniform(2, self.max_child_number))):
-                        tree.add_child(self.__generate_child(tree, states, current_depth + 1))
-                    # tree.children = [item[0] for item in children if item[1]]
+                        tree.add_child(self.__generate_child(tree, states, current_depth + 1, balanced))
                     return tree
                 elif tree.type == NodeType.IMP or tree.type == NodeType.EQV:
                     for _ in range(2):
-                        tree.add_child(self.__generate_child(tree, states, current_depth + 1))
+                        tree.add_child(self.__generate_child(tree, states, current_depth + 1, balanced))
                     return tree
                 elif tree.type == NodeType.NOT:
-                    tree.add_child(self.__generate_child(tree, states, current_depth + 1))
+                    tree.add_child(self.__generate_child(tree, states, current_depth + 1, balanced))
                     return tree
                 else:
                     raise RuntimeError("Invalid type: " + str(tree.type))
@@ -235,5 +232,5 @@ class GeneratorNode(Node):
 
         return state
 
-    def generate(self, states: Dict) -> Node:
-        return self.__generate_child(None, states, 0)
+    def generate(self, states: Dict, balanced: bool) -> Node:
+        return self.__generate_child(None, states, 0, balanced)
