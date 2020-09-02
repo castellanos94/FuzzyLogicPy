@@ -7,9 +7,10 @@ import pandas as pd
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer, KDFLC
 from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType, Operator
-from fuzzylogicpy.core.expression_parser import ExpressionParser
 from fuzzylogicpy.core.impl.logics import GMBC
 from fuzzylogicpy.core.impl.memberships import Sigmoid
+from fuzzylogicpy.parser.expression_parser import ExpressionParser
+from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json
 
 
 def print_hi(name):
@@ -78,4 +79,18 @@ def test_kdflc():
 if __name__ == '__main__':
     # test_evaluation()
     random.seed(1)
-    test_kdflc()
+    # test_kdflc()
+    data = pd.read_csv('datasets/tinto.csv')
+
+    states = {}
+    for head in data.head():
+        states[head] = StateNode(head, head)
+    expression = '(IMP (AND {}) "quality")'.format(
+        str([str(v) for v in states.keys() if 'quality' != v]).replace('\'', '"').replace(',', '').replace('[',
+                                                                                                           '').replace(
+            ']', ''))
+    query = EvaluationQuery('datasets/tinto.csv', 'results/evaluation.xlsx', states, LogicType.GMBC, expression)
+    query_str = query_to_json(query)
+    print(query_str)
+    evaluation = query_from_json(query_str)
+    print(evaluation.name())
