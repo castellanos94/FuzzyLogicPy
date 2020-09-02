@@ -10,7 +10,7 @@ from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType, Opera
 from fuzzylogicpy.core.impl.logics import GMBC
 from fuzzylogicpy.core.impl.memberships import Sigmoid
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
-from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json
+from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json, QueryExecutor
 
 
 def print_hi(name):
@@ -91,6 +91,9 @@ if __name__ == '__main__':
             ']', ''))
     query = EvaluationQuery('datasets/tinto.csv', 'results/evaluation.xlsx', states, LogicType.GMBC, expression)
     query_str = query_to_json(query)
-    print(query_str)
+    print(query.states['fixed_acidity'])
     evaluation = query_from_json(query_str)
     print(evaluation.name())
+    print(evaluation.states['fixed_acidity'])
+    executor = QueryExecutor(evaluation)
+    executor.execute()

@@ -5,7 +5,11 @@ import json
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from fuzzylogicpy.core.elements import Node
+import pandas as pd
+
+from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation
+from fuzzylogicpy.core.elements import Node, StateNode, GeneratorNode, Operator, NodeType
+from fuzzylogicpy.core.impl.logics import GMBC, ZadehLogic
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
 
 
@@ -19,9 +23,16 @@ def query_from_json(query_string: str) -> Query:
         print(dict_['type'])
         if dict_['type'] == str(QueryType.EVALUATION):
             dict_.pop('type')
+            dict_['states'] = {k: StateNode(**{k_: v_ for k_, v_ in v.items() if k_ != 'type'}) for k, v in
+                               dict_['states'].items()}
+
             return EvaluationQuery(**dict_)
         elif dict_['type'] == str(QueryType.DISCOVERY):
             dict_.pop('type')
+            dict_['states'] = {k: StateNode(**{k_: v_ for k_, v_ in v.items() if k_ != 'type'}) for k, v in
+                               dict_['states'].items()}
+            dict_['generators'] = {k: GeneratorNode(**{k_: v_ for k_, v_ in v.items() if k_ != 'type'}) for k, v in
+                                   dict_['generators'].items()}
             return DiscoveryQuery(**dict_)
         else:
             raise RuntimeError('Invalid object: ' + str(dict_))
@@ -104,3 +115,41 @@ class DiscoveryQuery(Query):
         self.adj_num_iter = adj_num_iter
         self.adj_num_pop = adj_num_pop
         self.adj_min_truth_value = adj_min_truth_value
+
+
+class QueryExecutor:
+    def __init__(self, query: Query):
+        self.query = query
+
+    def execute(self):
+        if '.csv' in self.query.db_uri:
+            data = pd.read_csv(self.query.db_uri)
+        elif '.xlsx' in self.query.db_uri:
+            data = pd.read_excel(self.query.db_uri)
+        else:
+            raise RuntimeError('Invalid output file format')
+        if self.query.logic == LogicType.GMBC:
+            logic = GMBC()
+        elif self.query.logic == LogicType.ZADEH:
+            logic = ZadehLogic()
+        else:
+            raise RuntimeError('Invalid logic')
+        if self.query.type == QueryType.EVALUATION:
+
+            op = self.query.get_tree()
+
+            if isinstance(op, Operator):
+                __states = Operator.get_nodes_by_type(op, NodeType.STATE)
+                if any([__state.membership is None for __state in __states]):
+                    raise RuntimeError('All states on predicate must be have membership function')
+
+                evaluator = ExpressionEvaluation(data, logic, op)
+                evaluator.eval()
+                print(op.fitness, op)
+            else:
+                raise RuntimeError('Invalid expression')
+
+        elif self.query.type == QueryType.DISCOVERY:
+            pass
+        else:
+            raise RuntimeError("Invalid")
