@@ -201,7 +201,7 @@ def __show(functions: dict, fitness: List[float]):
 class MembershipFunctionOptimizer:
 
     def __init__(self, data: Dict, logic, min_value: float = 0.5, population_size: int = 3, iteration: int = 2,
-                 mutation_rate: float = 0.5,
+                 mutation_rate: float = 0.1,
                  operators=None):
         if operators is None:
             operators = {'repair': repair_membership_function, 'generate': generate_membership_function,
@@ -286,8 +286,7 @@ class KDFLC:
     def __init__(self, data: Dict, tree: Operator, states: Dict, logic: Logic, num_pop: int, num_iter: int,
                  num_result: int,
                  min_truth_value: float,
-                 mut_percentage: float, adj_min_value: float = 0.0, adj_population_size: int = 3,
-                 adj_iteration: int = 2, adj_mutation_rate: float = 0.1, adj_operators: Dict = None):
+                 mut_percentage: float, **kwargs):
         self.data = data
         self.predicate = tree
         self.states = states
@@ -297,8 +296,7 @@ class KDFLC:
         self.num_result = num_result
         self.min_truth_value = min_truth_value
         self.mut_percentage = mut_percentage
-        self.optimizer = MembershipFunctionOptimizer(data, logic, adj_min_value, adj_population_size, adj_iteration,
-                                                     adj_mutation_rate, adj_operators)
+        self.optimizer = MembershipFunctionOptimizer(data, logic, **{k: v for k, v in kwargs.items() if v is not None})
         self.predicates = []
         self.generators = Operator.get_nodes_by_type(tree,
                                                      NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else [tree]
@@ -399,24 +397,24 @@ class KDFLC:
             # population = [self.optimizer.optimize(individual) for individual in population]
             # Random Selection and copy parents to modification
             # pt_ = [copy.deepcopy(random.choice(population)) for _ in range(int(len(population) / 2))]
-            pt_ = []
+            __pt = []
             n_ = int(len(population) / 2)
             for idx in range(n_):
                 v = random.choice(population)
-                pt_.append(v)
+                __pt.append(v)
                 population.remove(v)
 
-            qt_ = []
+            __qt = []
             idx = 0
-            while idx < len(pt_):
-                qt_ += self.crossover(pt_[idx], pt_[idx + 1 if idx + 1 < len(pt_) else 0])
+            while idx < len(__pt):
+                __qt += self.crossover(__pt[idx], __pt[idx + 1 if idx + 1 < len(__pt) else 0])
                 idx += 2
             # Mutation  and Evaluation predicate
-            qt_ = [self.mutation_predicate(item) for item in qt_]
-            self.predicates += [individual for individual in qt_ if
+            __qt = [self.mutation_predicate(item) for item in __qt]
+            self.predicates += [individual for individual in __qt if
                                 individual.fitness >= self.min_truth_value and individual not in self.predicates
                                 and is_valid(individual)]
-            population += [item for item in qt_ if is_valid(item) and item not in self.predicates]
+            population += [item for item in __qt if is_valid(item) and item not in self.predicates]
             if len(population) > self.num_pop:
                 population = population[:self.num_pop]
 
