@@ -81,19 +81,15 @@ if __name__ == '__main__':
     random.seed(1)
     # test_kdflc()
     data = pd.read_csv('datasets/tinto.csv')
-
-    states = {}
-    for head in data.head():
-        states[head] = StateNode(head, head)
-    expression = '(IMP (AND {}) "quality")'.format(
-        str([str(v) for v in states.keys() if 'quality' != v]).replace('\'', '"').replace(',', '').replace('[',
-                                                                                                           '').replace(
-            ']', ''))
+    quality = StateNode('high quality', 'quality', Sigmoid(5.5, 4))
+    alcohol = StateNode('high alcohol', 'alcohol', Sigmoid(11.65, 9))
+    states = {quality.label: quality, alcohol.label: alcohol}
+    expression = '(IMP (NOT "high alcohol") "high quality")'
     query = EvaluationQuery('datasets/tinto.csv', 'results/evaluation.xlsx', states, LogicType.GMBC, expression)
     query_str = query_to_json(query)
-    print(query.states['fixed_acidity'])
+    print(query.states['high alcohol'])
     evaluation = query_from_json(query_str)
     print(evaluation.name())
-    print(evaluation.states['fixed_acidity'])
+    print(evaluation.states['high alcohol'])
     executor = QueryExecutor(evaluation)
     executor.execute()

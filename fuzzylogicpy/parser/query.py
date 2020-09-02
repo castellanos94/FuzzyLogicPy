@@ -10,11 +10,40 @@ import pandas as pd
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation
 from fuzzylogicpy.core.elements import Node, StateNode, GeneratorNode, Operator, NodeType
 from fuzzylogicpy.core.impl.logics import GMBC, ZadehLogic
+from fuzzylogicpy.core.impl.memberships import FPG, Sigmoid
+from fuzzylogicpy.core.membership_function import MembershipFunction
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
 
 
 def query_to_json(query: Query) -> str:
     return json.dumps(query, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+
+
+def do_states(data: Dict) -> Dict:
+    __states = {}
+    for k, v in data.items():
+        if 'membership' in v.keys():
+            membership = do_membership(v['membership'])
+            v.pop('membership')
+        else:
+            membership = None
+        v.pop('type')
+        __states[k] = StateNode(membership=membership, **v)
+    return __states
+
+
+def do_membership(data: Dict) -> MembershipFunction:
+    if data is None:
+        return None
+    if 'type' in data.keys():
+        if data['type'] == 'FPG':
+            data.pop('type')
+            return FPG(**data)
+        if data['type'] == Sigmoid.__name__:
+            data.pop('type')
+            return Sigmoid(**data)
+    else:
+        raise RuntimeWarning('Unknown membership function: ' + str(data))
 
 
 def query_from_json(query_string: str) -> Query:
@@ -23,14 +52,13 @@ def query_from_json(query_string: str) -> Query:
         print(dict_['type'])
         if dict_['type'] == str(QueryType.EVALUATION):
             dict_.pop('type')
-            dict_['states'] = {k: StateNode(**{k_: v_ for k_, v_ in v.items() if k_ != 'type'}) for k, v in
-                               dict_['states'].items()}
+            dict_['states'] = do_states(dict_['states'])
+            # do_elements(dict_)
 
             return EvaluationQuery(**dict_)
         elif dict_['type'] == str(QueryType.DISCOVERY):
             dict_.pop('type')
-            dict_['states'] = {k: StateNode(**{k_: v_ for k_, v_ in v.items() if k_ != 'type'}) for k, v in
-                               dict_['states'].items()}
+            dict_['states'] = do_states(dict_['states'])
             dict_['generators'] = {k: GeneratorNode(**{k_: v_ for k_, v_ in v.items() if k_ != 'type'}) for k, v in
                                    dict_['generators'].items()}
             return DiscoveryQuery(**dict_)
