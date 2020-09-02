@@ -1,5 +1,5 @@
-# This is a sample Python script.
 import random
+import time
 
 import pandas as pd
 
@@ -11,11 +11,6 @@ from fuzzylogicpy.core.impl.logics import GMBC
 from fuzzylogicpy.core.impl.memberships import Sigmoid
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
 from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json, QueryExecutor
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
 # Press the green button in the gutter to run the script.
@@ -57,13 +52,13 @@ def test_kdflc():
     for head in data.head():
         states[head] = StateNode(head, head)
 
-    props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v and 'alcohol' != v],
-                          [NodeType.IMP, NodeType.NOT], 3)
+    props = GeneratorNode(3, 'properties', [v for v in states.keys() if 'quality' != v and 'alcohol' != v],
+                          [NodeType.EQV, NodeType.AND, NodeType.NOT], 3)
     category = GeneratorNode(1, 'category', [v for v in states.keys() if 'quality' == v or 'alcohol' == v],
-                             [NodeType.AND, NodeType.NOT])
+                             [NodeType.NOT])
     generators = {props.label: props, category.label: category}
     expression = '(IMP "{}" "{}")'.format(props.label, category.label)
-    # expression = '(IMP "{}" "quality")'.format(props.label)
+    expression = '(IMP "{}" "quality")'.format(props.label)
     # expression = '(IMP "alcohol" "quality")'
     # expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
@@ -93,6 +88,8 @@ def test_parser():
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     # test_evaluation()
     random.seed(1)
     test_kdflc()
+    print("--- %s seconds ---" % (time.time() - start_time))
