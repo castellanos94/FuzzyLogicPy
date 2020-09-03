@@ -103,74 +103,68 @@ def repair_membership_function(bundle: Dict):
         membership.m = random.random()
 
 
-def crossover_membership_function(parent_a: Dict, parent_b: Dict, probability: float = 1, ignore_key: List[str] = None,
+def crossover_membership_function(parent_a: Dict, parent_b: Dict, probability: float = 1,
                                   distribution_index: float = 20) -> List[Dict]:
-    if ignore_key is None:
-        ignore_key = ['type']
-    elif 'type' not in ignore_key:
-        ignore_key += 'type'
-    a, b = copy.deepcopy(parent_a), copy.deepcopy(parent_b)
     rand = random.random()
     if rand <= probability:
-        for key, item in a['F'].__dict__.items():
-            if key not in ignore_key:
-                value_x1, value_x2 = a['F'].__dict__.get(key), b['F'].__dict__.get(key)
-                if random.random() <= 0.5:
-                    if abs(value_x1 - value_x2) > __EPS:
-                        if value_x1 < value_x2:
-                            y1, y2 = value_x1, value_x2
-                        else:
-                            y1, y2 = value_x2, value_x1
-                        lower_bound, upper_bound = a['min'], a['max']
+        a, b = copy.deepcopy(parent_a), copy.deepcopy(parent_b)
+        __a_values = a['F'].get_values()
+        __b_values = b['F'].get_values()
+        for idx in range(len(__a_values)):
+            value_x1, value_x2 = __a_values[idx], __b_values[idx]
+            if random.random() <= 0.5:
+                if abs(value_x1 - value_x2) > __EPS:
+                    if value_x1 < value_x2:
+                        y1, y2 = value_x1, value_x2
+                    else:
+                        y1, y2 = value_x2, value_x1
+                    lower_bound, upper_bound = a['min'], a['max']
 
-                        beta = 1.0 + (2.0 * (y1 - lower_bound) / (y2 - y1))
-                        alpha = 2.0 - pow(beta, -(distribution_index + 1.0))
+                    beta = 1.0 + (2.0 * (y1 - lower_bound) / (y2 - y1))
+                    alpha = 2.0 - pow(beta, -(distribution_index + 1.0))
 
-                        rand = random.random()
-                        if rand <= (1.0 / alpha):
-                            betaq = pow(rand * alpha, (1.0 / (distribution_index + 1.0)))
-                        else:
-                            betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (distribution_index + 1.0))
+                    rand = random.random()
+                    if rand <= (1.0 / alpha):
+                        betaq = pow(rand * alpha, (1.0 / (distribution_index + 1.0)))
+                    else:
+                        betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (distribution_index + 1.0))
 
-                        c1 = 0.5 * (y1 + y2 - betaq * (y2 - y1))
-                        beta = 1.0 + (2.0 * (upper_bound - y2) / (y2 - y1))
-                        alpha = 2.0 - pow(beta, -(distribution_index + 1.0))
+                    c1 = 0.5 * (y1 + y2 - betaq * (y2 - y1))
+                    beta = 1.0 + (2.0 * (upper_bound - y2) / (y2 - y1))
+                    alpha = 2.0 - pow(beta, -(distribution_index + 1.0))
 
-                        if rand <= (1.0 / alpha):
-                            betaq = pow((rand * alpha), (1.0 / (distribution_index + 1.0)))
-                        else:
-                            betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (distribution_index + 1.0))
+                    if rand <= (1.0 / alpha):
+                        betaq = pow((rand * alpha), (1.0 / (distribution_index + 1.0)))
+                    else:
+                        betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (distribution_index + 1.0))
 
-                        c2 = 0.5 * (y1 + y2 + betaq * (y2 - y1))
+                    c2 = 0.5 * (y1 + y2 + betaq * (y2 - y1))
 
-                        if c1 < lower_bound:
-                            c1 = lower_bound
-                        if c2 < lower_bound:
-                            c2 = lower_bound
-                        if c1 > upper_bound:
-                            c1 = upper_bound
-                        if c2 > upper_bound:
-                            c2 = upper_bound
+                    if c1 < lower_bound:
+                        c1 = lower_bound
+                    if c2 < lower_bound:
+                        c2 = lower_bound
+                    if c1 > upper_bound:
+                        c1 = upper_bound
+                    if c2 > upper_bound:
+                        c2 = upper_bound
 
-                        if random.random() <= 0.5:
-                            a['F'].__dict__[key] = c2
-                            b['F'].__dict__[key] = c1
-                        else:
-                            a['F'].__dict__[key] = c1
-                            b['F'].__dict__[key] = c2
+                    if random.random() <= 0.5:
+                        __a_values[idx] = c2
+                        __b_values[idx] = c1
+                    else:
+                        __a_values[idx] = c1
+                        __b_values[idx] = c2
+        a['F'].set_values(__a_values)
+        b['F'].set_values(__b_values)
+        return [a, b]
+    return [parent_a, parent_b]
 
-    return [a, b]
 
-
-def mutation_membership_function(mutation_rate: float, eta: float, bundle: Dict,
-                                 ignore_key=None) -> None:
-    if ignore_key is None:
-        ignore_key = ['type']
-    elif 'type' not in ignore_key:
-        ignore_key += 'type'
-    for key, item in bundle['F'].__dict__.items():
-        if random.random() <= mutation_rate and key not in ignore_key:
-            x = bundle['F'].__dict__.get(key)
+def mutation_membership_function(mutation_rate: float, eta: float, bundle: Dict) -> None:
+    __values = bundle['F'].get_values()
+    for idx, x in enumerate(__values):
+        if random.random() <= mutation_rate:
             xl = bundle['min']
             xu = bundle['max']
             delta_1 = (x - xl) / (xu - xl)
@@ -189,7 +183,8 @@ def mutation_membership_function(mutation_rate: float, eta: float, bundle: Dict,
                 delta_q = 1.0 - val ** mut_pow
 
             x = x + delta_q * (xu - xl)
-            bundle['F'].__dict__[key] = min(max(x, xl), xu)
+            __values[idx] = min(max(x, xl), xu)
+    bundle['F'].set_values(__values)
 
 
 def __show(functions: dict, fitness: List[float]):

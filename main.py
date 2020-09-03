@@ -52,13 +52,13 @@ def test_kdflc():
     for head in data.head():
         states[head] = StateNode(head, head)
 
-    props = GeneratorNode(3, 'properties', [v for v in states.keys() if 'quality' != v and 'alcohol' != v],
+    props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v and 'alcohol' != v],
                           [NodeType.EQV, NodeType.AND, NodeType.NOT], 3)
     category = GeneratorNode(1, 'category', [v for v in states.keys() if 'quality' == v or 'alcohol' == v],
                              [NodeType.NOT])
     generators = {props.label: props, category.label: category}
     expression = '(IMP "{}" "{}")'.format(props.label, category.label)
-    expression = '(IMP "{}" "quality")'.format(props.label)
+    # expression = '(IMP "{}" "quality")'.format(props.label)
     # expression = '(IMP "alcohol" "quality")'
     # expression = '("properties")'
     parser = ExpressionParser(expression, states, generators)
@@ -67,7 +67,10 @@ def test_kdflc():
     algorithm.discovery()
     for item in algorithm.predicates:
         print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
-
+    # Re evaluating
+    for item in algorithm.predicates:
+        item = ExpressionEvaluation(data, GMBC(), item).eval()
+        print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
     # algorithm.export_data('results/discovery.xlsx')
 
 
