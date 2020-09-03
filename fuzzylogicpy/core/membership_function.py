@@ -12,7 +12,7 @@ class MembershipFunction(ABC):
         pass
 
     @abstractmethod
-    def derive(self, param: str) -> float:
+    def derive(self, value: float, param: str) -> float:
         pass
 
     @abstractmethod
@@ -22,8 +22,13 @@ class MembershipFunction(ABC):
     def name(self) -> str:
         return self.__class__.__name__
 
+    @abstractmethod
     def get_values(self):
-        return self.__dict__.values()
+        pass
+
+    @abstractmethod
+    def set_values(self, *args):
+        pass
 
     def __str__(self):
         return str(self.__dict__)
