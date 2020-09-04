@@ -72,3 +72,38 @@ class GMBC(Logic):
 
     def or_(self, values) -> float:
         return 1 - pow(reduce(lambda x, y: (1 - x) * (1 - y), values), 1 / len(values))
+
+
+class AMBC(Logic):
+    """
+    AMBC logic: https://doi.org/10.1142/S1469026811003070 -based implementation.
+    """
+
+    def not_(self, value: float) -> float:
+        return 1 - value
+
+    def and_test(self, a: float, b: float) -> float:
+        return np.sqrt(min(a, b) * 0.5 * (a + b))
+
+    def or_test(self, a: float, b: float) -> float:
+        return 1.0 - np.sqrt(min((1.0 - a), (1.0 - b)) * 0.5 * ((1.0 - a) + (1.0 - b)))
+
+    def imp_(self, a: float, b: float) -> float:
+        return self.or_test(self.not_(a), b)
+
+    def eqv_(self, a: float, b: float) -> float:
+        return self.and_test(self.imp_(a, b), self.imp_(b, a))
+
+    def for_all(self, values) -> float:
+        return np.sqrt(min(values) * sum(values) * 1.0 / len(values))
+
+    def exist(self, values) -> float:
+        _values = [1 - v for v in values]
+        return 1 - np.sqrt(min(_values) * sum(_values) * 1.0 / len(_values))
+
+    def and_(self, values) -> float:
+        return np.sqrt(min(values) * sum(values) * 1.0 / len(values))
+
+    def or_(self, values) -> float:
+        _values = [1 - v for v in values]
+        return 1 - np.sqrt(min(_values) * (1.0 / len(values)) * sum(_values))
