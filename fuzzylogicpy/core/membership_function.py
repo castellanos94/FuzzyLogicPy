@@ -8,11 +8,11 @@ class MembershipFunction(ABC):
         self.type = self.name()
 
     @abstractmethod
-    def evaluate(self, value) -> float:
+    def evaluate(self, v) -> float:
         pass
 
     @abstractmethod
-    def derive(self, value: float, param: str) -> float:
+    def derive(self, v: float, param: str) -> float:
         pass
 
     @abstractmethod

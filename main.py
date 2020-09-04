@@ -8,7 +8,7 @@ import pandas as pd
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer, KDFLC
 from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType, Operator
 from fuzzylogicpy.core.impl.logics import GMBC
-from fuzzylogicpy.core.impl.memberships import Sigmoid
+from fuzzylogicpy.core.impl.memberships import Sigmoid, Gamma, LGamma
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
 from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json, QueryExecutor
 
@@ -94,5 +94,9 @@ if __name__ == '__main__':
     start_time = time.time()
     # test_evaluation()
     random.seed(1)
-    test_kdflc()
+    # test_kdflc()
+    g = Gamma(3, 2)
+    print(g, g.type, g.is_valid())
+    lg = LGamma(3, 6)
+    print(lg, lg.type, lg.is_valid())
     print("--- %s seconds ---" % (time.time() - start_time))
