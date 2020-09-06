@@ -22,7 +22,6 @@ This framework is developed in Python version 3.9.
   * ZForm
   * FPG
   * Nominal
-  * Map-Nominal
 
 # Supported query types:
   * Predicate Evaluation
@@ -35,6 +34,6 @@ This framework is developed in Python version 3.9.
 # Notes
 Input datasets in CSV and XLSX format supported.
 
-Input query in JSON and EDN format.
+Input query in JSON.
 
-Export data result in CSV, JSON format only (In the evaluation query you can see a json representation of the evaluated predicate).
+Export data result in CSV and XLSX format supported.
