@@ -8,7 +8,7 @@ import pandas as pd
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer, KDFLC
 from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType, Operator
 from fuzzylogicpy.core.impl.logics import GMBC
-from fuzzylogicpy.core.impl.memberships import Sigmoid, NSigmoid
+from fuzzylogicpy.core.impl.memberships import Sigmoid, NSigmoid, Nominal
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
 from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json, QueryExecutor
 
@@ -75,6 +75,33 @@ def test_kdflc():
     # algorithm.export_data('results/discovery.xlsx')
 
 
+def test_classification():
+    data = pd.read_csv('datasets/iris.csv')
+    states = {}
+    for head in data.head():
+        states[head] = StateNode(head, head)
+
+    props = GeneratorNode(1, 'properties', [v for v in states.keys() if 'variety' != v], [NodeType.OR, NodeType.AND])
+
+    setosa = StateNode('Setosa', 'variety', Nominal(('Setosa', 1.0)))
+    versicolor = StateNode('Versicolor', 'variety', Nominal(('Versicolor', 1.0)))
+    virginica = StateNode('Virginica', 'variety', Nominal(('Virginica', 1.0)))
+    states[setosa.label] = setosa
+    states[versicolor.label] = versicolor
+    states[virginica.label] = virginica
+    category = GeneratorNode(0, 'category', [setosa.label, versicolor.label, virginica.label],
+                             [NodeType.NOT, NodeType.AND])
+    generators = {props.label: props, category.label: category}
+    expression = '(IMP "{}" "{}")'.format(props.label, category.label)
+    parser = ExpressionParser(expression, states, generators)
+    root = parser.parser()
+    algorithm = KDFLC(data, root, states, GMBC(), 150, 50, 30, 0.95, 0.1)
+    algorithm.discovery()
+    for item in algorithm.predicates:
+        print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
+    algorithm.export_data('results/classification_iris.xlsx')
+
+
 def test_parser():
     data = pd.read_csv('datasets/tinto.csv')
     quality = StateNode('high quality', 'quality', Sigmoid(5.5, 4))
@@ -93,8 +120,9 @@ def test_parser():
 
 if __name__ == '__main__':
     start_time = time.time()
-    #test_evaluation()
+    # test_evaluation()
     random.seed(1)
-    test_kdflc()
+    # test_kdflc()
+    test_classification()
 
     print("--- %s seconds ---" % (time.time() - start_time))
