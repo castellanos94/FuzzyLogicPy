@@ -93,8 +93,8 @@ def test_parser():
 
 if __name__ == '__main__':
     start_time = time.time()
-    test_evaluation()
+    #test_evaluation()
     random.seed(1)
-    # test_kdflc()
+    test_kdflc()
 
     print("--- %s seconds ---" % (time.time() - start_time))

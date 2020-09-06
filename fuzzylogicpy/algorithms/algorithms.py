@@ -187,12 +187,6 @@ def mutation_membership_function(mutation_rate: float, eta: float, bundle: Dict)
     bundle['F'].set_values(__values)
 
 
-def __show(functions: dict, fitness: List[float]):
-    print('Showing...')
-    for k in functions.keys():
-        print(fitness, functions[k])
-
-
 class MembershipFunctionOptimizer:
 
     def __init__(self, data: Dict, logic, min_value: float = 0.5, population_size: int = 3, iteration: int = 2,
@@ -349,25 +343,28 @@ class KDFLC:
             b_choice = random.choice(b_edit)
             b_max_depth = [gen for gen in self.generators if gen.label == b_choice.owner_generator][0].depth
 
-            b_grade = Operator.get_grade(b_choice)
+            b_grade = Operator.get_grade(
+                b_choice) if b_choice.owner_generator == a_choice.owner_generator else b_max_depth
             father = Operator.get_father(a, a_choice)
             father_depth = Operator.dfs(a, father)
             intents = 1
             while father_depth + b_grade > b_max_depth and intents < len(b_edit):
                 b_choice = random.choice(b_edit)
-                b_grade = Operator.get_grade(b_choice)
+                b_grade = Operator.get_grade(
+                    b_choice) if b_choice.owner_generator == a_choice.owner_generator else b_max_depth
                 intents += 1
             Operator.replace_node(father, a_choice, b_choice)
 
-            a_depth, grade = Operator.dfs(a, a_choice), Operator.get_grade(a_choice)
             a_max_depth = [gen for gen in self.generators if gen.label == a_choice.owner_generator][0].depth
+            grade = Operator.get_grade(
+                a_choice) if a_choice.owner_generator == b_choice.owner_generator else a_max_depth
             father = Operator.get_father(b, b_choice)
             father_depth = Operator.dfs(b, father)
             intents = 1
 
             while father_depth + grade > a_max_depth and intents < len(a_edit):
                 a_choice = random.choice(a_edit)
-                grade = Operator.get_grade(a_choice)
+                Operator.get_grade(a_choice) if a_choice.owner_generator == b_choice.owner_generator else a_max_depth
                 intents += 1
         return [self.optimizer.optimize(a), self.optimizer.optimize(b)]
 
