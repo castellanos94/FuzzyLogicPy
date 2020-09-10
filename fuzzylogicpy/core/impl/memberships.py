@@ -82,55 +82,43 @@ class FPG(MembershipFunction):
         return (sigmoid * sigmoid2) / m_
 
     def derive(self, value: float, param: str) -> float:
-        if param == "g":
-            #       e^(g(-b+x)) * (1-m)^(m-1) * ((1 / 1 + e^(c(g-x)) )^(m-1) - 1) * (b-x)
+        gamma, beta, m = self.get_values()
+        if param == "gamma":
+            #       e^(g(-b+x)) * (1-m)^(m-1) * m^-m * ( m* (1 / 1 + e^(g(b-x) )^(m-1) - 1) * (b-x)
             #  - _______________________________________________________________________
-            #                              (1 + e^(c(-b + x))^2
-            result = (
-                    -1
-                    * (
-                            np.exp(self.gamma * (-self.beta + value))
-                            * pow(1 - self.m, self.m - 1)
-                            * (
-                                    pow(
-                                        (
-                                            1 / (1 + np.exp(self.gamma * (self.beta - value))),
-                                            self.m - 1,
-                                        )
-                                    )
-                                    - 1
-                            )
-                            * (self.beta - value)
-                    )
-                    / pow(1 + np.exp(self.gamma * (-self.beta + value)), 2)
-            )
-        elif param == "b":
-            #    ce^(c(x-b)) * (1-m)^(m-1) * m^-m * (( 1/ 1+e^(c(b-x)) )-1)^(m-1)
+            #                              (1 + e^(g(-b + x))^2
+            a = m * (1/(1+np.exp(gamma *(beta-x))))**(m-1)
+            a -= 1
+            a *= (1-m)**(m-1)
+            a *= m**-m
+            a *= np.exp(gamma*(x-beta))
+            a *= (beta-x)
+            b = (1 + np.exp(gamma*(x-beta)))**2
+            result = -a/b 
+            
+           
+        elif param == "beta":
+            #    ge^(g(x-b)) * (1-m)^(m-1) * m^-m * (m*( 1/ 1+e^(g(b-x)) )^(m-1) -1)
             #  - ________________________________________________________________
             #                       (1 + e^(c(x-b)))2
-            result = (
-                    -1
-                    * (
-                            self.gamma
-                            * np.exp(self.gamma * (value - self.beta))
-                            * pow(1 - self.m, self.m - 1)
-                            * pow(self.m, -self.m)
-                            * pow(
-                        (1 / (1 + np.exp(self.gamma * (self.beta - value)))) - 1,
-                        self.m - 1,
-                    )
-                    )
-                    / pow(1 + np.exp(self.gamma * (value - self.beta)), 2)
-            )
+            a = m * (1/(1+np.exp(gamma *(beta-x))))**(m-1)
+            a -= 1
+            a *= (1-m)**(m-1)
+            a *= m**-m
+            a *= gamma * np.exp(gamma*(x-beta))
+            b = (1 + np.exp(gamma*(x-beta)))**2
+            result = -a/b
+            
         elif param == "m":
-            Sg = Sigmoid(self.gamma, self.beta).evaluate(value)
-            #  (1-m)^(1+m) * m^-m * (1 -Sg )^(1-m) * (log(1-m) - log(m) - log(1-Sg) + log(Sg))
-            result = (
-                    pow(1 - self.m, self.m - 1)
-                    * pow(self.m, -self.m)
-                    * pow(1 - Sg, 1 - self.m)
-                    * (np.log(1 - self.m) - np.log(self.m) - np.log(1 - Sg) + np.log(Sg))
-            )
+            Sg = Sigmoid(gamma, beta).evaluate(x)
+            #  (1-m)^(-1+m) * m^-m * (1 -Sg)^(1-m) * Sg**m * (log(1-m) - log(m) - log(1-Sg) + log(Sg))
+            a = (1-m)**(-1+m)
+            a *= m**-m 
+            a *= (1-Sg)**(1-m)
+            a *= Sg**m
+            a *= (np.log(1-m) - np.log(m) - np.log(1-Sg) + np.log(Sg))
+            result = a
+
         return result
 
 
