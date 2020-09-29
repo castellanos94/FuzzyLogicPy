@@ -112,7 +112,7 @@ class Operator(Node):
     @staticmethod
     def get_nodes_by_type(root: Operator, type_: NodeType) -> List[Node]:
         found = []
-        if type_ == NodeType.GENERATOR and root.type == NodeType.GENERATOR:
+        if type_ == NodeType.GENERATOR and root.type == type_:
             return [root]
         for node in root.children:
             if node.type == type_:
