@@ -1,7 +1,7 @@
 import numpy as np
 import itertools
 import copy
-
+from ..core.impl.logics import GMBC
 
 class NeuralNetwork:
     """Class to implement an Adaptative Network Fuzzy Inference System: ANFIS";
@@ -66,20 +66,12 @@ class NeuralNetwork:
     
     def secondLayer(self,ANFISObj,layerOne):
         miAlloc = [[layerOne[x][ANFISObj.rules[row][x]] for x in range(len(ANFISObj.rules[0]))] for row in range(len(ANFISObj.rules))]
-        
-
-        #tmp = []
-        #for x in miAlloc:
-        #    v = 0
-            #x = [i for i in x if i != 0]
-        #    for y in range(len(x)):
-        #        if y == 0:
-        #            v = x[y]
-        #        else:
-        #            v = GMBC()._and(v,x[y])
-        #    tmp.append(v)
-        #return np.array(tmp).T
-        return np.array([np.product(x) for x in miAlloc]).T
+        tmp = []
+        for x in miAlloc:
+            v = GMBC().and_(x)
+            tmp.append(v)
+        return np.array(tmp).T
+        #return np.array([np.product(x) for x in miAlloc]).T
 
     
     def fourthLayer(self,ANFISObj,Xs):
@@ -93,14 +85,14 @@ class NeuralNetwork:
             w = layerTwo if pattern == 0 else np.vstack((w,layerTwo))
             #layer three
             wSum.append(np.sum(layerTwo))
-            wNormalized = layerTwo/wSum[pattern] if pattern == 0 else np.vstack((wNormalized,layerTwo/wSum[pattern]))
+            #wNormalized = layerTwo/wSum[pattern] if pattern == 0 else np.vstack((wNormalized,layerTwo/wSum[pattern]))
             #prep for return layer four  (bit of hack)
             layerThree = layerTwo/wSum[pattern]
             self.layer3 = layerThree
             rowHolder = np.concatenate([x*np.append(Xs[pattern,:],1) for x in layerThree])
             layerFour = np.append(layerFour,rowHolder)
         w = w.T #Transpose()
-        wNormalized = wNormalized.T #Transpose
+        #wNormalized = wNormalized.T #Transpose
         layerFour = np.array(np.array_split(layerFour,pattern+1))
         return layerFour, wSum, w        
 
@@ -118,19 +110,24 @@ class NeuralNetwork:
         while epoch < epochs and convergence is not True:
             #layer four: fordward half pass
             [layerFour, wSum, w] = self.fourthLayer(self, self.X)
+            #print(type(layerFour))
             #layer five
+            layerFour = np.array([[j.real for j in i] for i in layerFour])
             layerFive = self.fifthLayer(layerFour,initialGamma)
-        
+            
+            
+            
             #calc. error
             error = np.sum((self.Y - layerFive.T)**2)
-            print('Current error: ',error)
+            print('Current error: {} '.format(error))
             average_error = np.average(np.absolute(self.Y - layerFive.T))
             self.errors = np.append(self.errors,error)
-
-            if len(self.errors) != 0:
-                if self.errors[len(self.errors)-1] < tolerance:
-                    convergence = True
             
+            if len(self.errors) != 0:
+                if self.errors[len(self.errors)-1] < tolerance :
+                    convergence = True
+                elif type(error) != type(np.float64()):
+                    convergence = True
             #back propagation
             
             if convergence is not True:
@@ -172,9 +169,11 @@ class NeuralNetwork:
 
             for varsWithMemFuncs in range(len(self.memFuncs)):
                 for MFs in range(len(self.memFuncsByVariable[varsWithMemFuncs])):
-                    paramList = self.memFuncs[varsWithMemFuncs][MFs].get_values()
+                    paramList = sorted(['beta','gamma'])
+                    paramList_values = self.memFuncs[varsWithMemFuncs][MFs].get_values()
                     for param in range(len(paramList)):
-                        paramList[param] +=  dAlpha[varsWithMemFuncs][MFs][param]
+                        paramList_values[param] +=  dAlpha[varsWithMemFuncs][MFs][param]
+                    self.memFuncs[varsWithMemFuncs][MFs].set_values(paramList_values)
             epoch = epoch + 1
 
     def plotErrors(self):
@@ -209,11 +208,11 @@ class NeuralNetwork:
         else:
             import matplotlib.pyplot as plt
             plt.plot(range(len(self.fittedValues)),self.fittedValues,'r', label='trained')
-            plt.plot(range(len(self.Y2)),self.Y2,'b', label='original')
+            plt.plot(range(len(self.Y)),self.Y,'b', label='original')
             plt.legend(loc='upper left')
             plt.show()
     
-
+          
     def predict(self, varsToTest,ANFISObj):
          #Evaluate test data
         self.setX2(varsToTest)
@@ -225,7 +224,7 @@ class NeuralNetwork:
     def __predict(self,ANFISObj, varsToTest):
 
         [layerFour, wSum, w] = self.fourthLayer(ANFISObj, varsToTest)
-
+        self.layer4 = layerFour
         #layer five
         layerFive = np.dot(layerFour,ANFISObj.consequents)
 
@@ -240,7 +239,7 @@ class BackPropagation:
 
             parameters = np.empty(len(ANFISObj.memFuncs[columnX][MF].get_values()))
             timesThru = 0
-            for alpha in ANFISObj.memFuncs[columnX][MF].get_values():
+            for alpha in sorted(['beta','gamma']):
 
                 bucket3 = np.empty(len(ANFISObj.X))
                 for rowX in range(len(ANFISObj.X)):
@@ -267,6 +266,12 @@ class BackPropagation:
 
                             acum = acum - theW[consequent,rowX] * np.sum(dW_dAplha)
                             acum = acum / theWSum[rowX]**2
+                            #print(type(fConsequent),type(acum))
+                            #if type(fConsequent) == type(np.complex128()):
+                            fConsequent = np.float64(fConsequent.real)
+                            #if type(acum) == type(np.ndarray):
+                            acum = np.float(acum.real)
+                            
                             bucket1[consequent] = fConsequent * acum
 
                         sum1 = np.sum(bucket1)
@@ -286,3 +291,16 @@ class BackPropagation:
             paramGrp[MF] = parameters
 
         return paramGrp
+
+class FuzzyRow:
+    'Common class for all membership functions'
+    
+    def __init__(self,MFList):
+        self.MFList = MFList
+    
+    def evaluateMF(self, rowInput):
+        if len(rowInput) != len(self.MFList):
+            assert("Number of variables does not match number of rule sets")
+        
+        eMF = [[self.MFList[i][k].evaluate(rowInput[i]) for k in range(len(self.MFList[i]))] for i in range(len(rowInput))]
+        return eMF  
