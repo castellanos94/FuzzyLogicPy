@@ -21,12 +21,22 @@ class ExpressionEvaluation:
         self.data_fuzzy = pd.DataFrame({})
 
     def __fuzzy_data(self):
-        header = self.df.head()
+        header = None
+        try:
+            header = self.df.head()
+        except Exception as e:
+            print(e)
+        if not header:
+            header = self.df[0].keys()
         for state in Operator.get_nodes_by_type(self.tree, NodeType.STATE):
             if state.cname in header:
                 values = []
-                for v in self.df[state.cname]:
-                    values.append(state.membership.evaluate(v))
+                if isinstance(self.df, list):
+                    for r in self.df:
+                        values.append(state.membership.evaluate(r[state.cname]))
+                else:
+                    for v in self.df[state.cname]:
+                        values.append(state.membership.evaluate(v))
                 self.data_fuzzy[state.label] = values
 
     def __fit_compute(self):
