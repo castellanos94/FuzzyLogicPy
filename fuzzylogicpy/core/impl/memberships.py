@@ -6,6 +6,8 @@ import numpy as np
 
 from fuzzylogicpy.core.membership_function import MembershipFunction
 
+_nan = float('nan')
+
 
 class Sigmoid(MembershipFunction):
     def to_edn(self) -> str:
@@ -216,7 +218,7 @@ class Triangular(Gamma):
     def evaluate(self, v) -> float:
         low_a = self.b - self.a
         low_b = self.c - self.b
-        return max(min((v - self.a) / low_a if low_a != 0 else 0, (self.c - v) / low_b if low_b != 0 else 0), 0)
+        return max(min((v - self.a) / low_a if low_a != 0 else _nan, (self.c - v) / low_b if low_b != 0 else _nan), 0)
 
     def derive(self, v: float, param: str) -> float:
         pass
