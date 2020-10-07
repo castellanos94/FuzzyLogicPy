@@ -218,7 +218,13 @@ class Triangular(Gamma):
     def evaluate(self, v) -> float:
         low_a = self.b - self.a
         low_b = self.c - self.b
-        return max(min((v - self.a) / low_a if low_a != 0 else _nan, (self.c - v) / low_b if low_b != 0 else _nan), 0)
+        if v <= self.a:
+            return 0
+        elif self.a <= v <= self.b:
+            return (v - self.a) / low_a if low_a != 0 else _nan
+        elif self.b <= v <= self.c:
+            return (self.c - v) / low_b if low_b != 0 else _nan
+        return 0
 
     def derive(self, v: float, param: str) -> float:
         pass
@@ -286,7 +292,7 @@ class LTrapezoidal(Gamma):
         if v < self.a:
             return 0
         if self.a <= v <= self.b:
-            return (v - self.a) / (self.b - self.a)
+            return (v - self.a) / (self.b - self.a) if (self.b - self.a) != 0 else _nan
         return 1
 
     def is_valid(self) -> bool:
@@ -304,7 +310,7 @@ class RTrapezoidal(Gamma):
         if v < self.a:
             return 1
         if self.a <= v <= self.b:
-            return 1 - (v - self.a) / (self.b - self.a)
+            return 1 - (v - self.a) / (self.b - self.a) if (self.b - self.a) != 0 else _nan
         return 0
 
     def is_valid(self) -> bool:
@@ -389,9 +395,9 @@ class SForm(Gamma):
         if v <= self.a:
             return 0
         if self.a <= v <= (self.a + self.b) / 2:
-            return 2 * pow((v - self.a) / (self.b - self.a), 2)
+            return 2 * pow((v - self.a) / (self.b - self.a) if (self.b - self.a) != 0 else _nan, 2)
         if (self.a + self.b) / 2 <= v <= self.b:
-            return 1 - 2 * pow((v - self.b) / (self.b - self.a), 2)
+            return 1 - 2 * pow((v - self.b) / (self.b - self.a) if (self.b - self.a) != 0 else _nan, 2)
         return 1
 
 
@@ -407,7 +413,7 @@ class ZForm(Gamma):
         if v <= self.a:
             return 1
         if self.a <= v <= (self.a + self.b) / 2:
-            return 1 - 2 * pow((v - self.a) / (self.b - self.a), 2)
+            return 1 - 2 * pow((v - self.a) / (self.b - self.a) if (self.b - self.a) != 0 else _nan, 2)
         if (self.a + self.b) / 2 <= v <= self.b:
-            return 2 * pow((v - self.b) / (self.b - self.a), 2)
+            return 2 * pow((v - self.b) / (self.b - self.a) if (self.b - self.a) != 0 else _nan, 2)
         return 0
