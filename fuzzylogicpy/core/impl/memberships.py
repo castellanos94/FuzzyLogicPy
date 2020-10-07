@@ -214,9 +214,9 @@ class Triangular(Gamma):
         self.c = c
 
     def evaluate(self, v) -> float:
-        low_a = self.b - self.a if self.b != self.a else np.nan
-        low_b = self.c - self.b if self.c != self.b else np.nan
-        return np.nanmax(np.nanmin((v - self.a) / low_a, (self.c - v) / low_b), 0)[0]
+        low_a = self.b - self.a
+        low_b = self.c - self.b
+        return max(min((v - self.a) / low_a if low_a != 0 else 0, (self.c - v) / low_b if low_b != 0 else 0), 0)
 
     def derive(self, v: float, param: str) -> float:
         pass
