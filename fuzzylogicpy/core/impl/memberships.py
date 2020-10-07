@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Tuple
 
 import numpy as np
+
 from fuzzylogicpy.core.membership_function import MembershipFunction
 
 
@@ -213,7 +214,9 @@ class Triangular(Gamma):
         self.c = c
 
     def evaluate(self, v) -> float:
-        return max(min((v - self.a) / (self.b - self.a), (self.c - v) / (self.c - self.b)), 0)
+        low_a = self.b - self.a if self.b != self.a else np.nan
+        low_b = self.c - self.b if self.c != self.b else np.nan
+        return np.nanmax(np.nanmin((v - self.a) / low_a, (self.c - v) / low_b), 0)[0]
 
     def derive(self, v: float, param: str) -> float:
         pass
@@ -386,6 +389,7 @@ class ZForm(Gamma):
     """
     Z-shaped memberhip function MathWorks-based implementation
     """
+
     def to_edn(self) -> str:
         return '[Zform {} {}]'.format(self.a, self.b)
 
