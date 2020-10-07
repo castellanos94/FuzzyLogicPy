@@ -89,7 +89,7 @@ class FPG(MembershipFunction):
         m_ = np.float(self.m) ** np.float(self.m) * np.float(1 - self.m) ** np.float(1 - self.m)
         return (sigmoid * sigmoid2) / m_
 
-    def derive(self, value: float, param: string) -> float:
+    def derive(self, value: float, param: str) -> float:
         gamma, beta, m = self.get_values()
         if param == 'gamma':
             #       e^(g(-b+x)) * (1-m)^(m-1) * m^-m * ( m* (1 / 1 + e^(g(b-x) )^(m-1) - 1) * (b-x)
