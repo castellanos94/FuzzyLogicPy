@@ -242,7 +242,15 @@ class Trapezoidal(Triangular):
         self.d = d
 
     def evaluate(self, v) -> float:
-        return max(min(min((v - self.a) / (self.b - self.a), (self.d - v) / (self.d - self.c)), 1), 0)
+        if v < self.a:
+            return 0
+        elif self.a <= v <= self.b:
+            return (v - self.a) / (self.b - self.a) if (self.b - self.a) != 0 else _nan
+        elif self.b <= v < self.c:
+            return 1
+        elif self.c <= v < self.d:
+            return 1 - (v - self.c) / (self.d - self.c)
+        return 0
 
     def derive(self, v: float, param: str) -> float:
         pass
