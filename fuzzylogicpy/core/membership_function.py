@@ -35,3 +35,7 @@ class MembershipFunction(ABC):
 
     def __repr__(self):
         return self.__str__()
+
+    @abstractmethod
+    def to_edn(self) -> str:
+        pass

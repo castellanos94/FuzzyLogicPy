@@ -5,7 +5,6 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-
 from fuzzylogicpy.core.elements import Operator, NodeType, Node, StateNode
 from fuzzylogicpy.core.impl.memberships import FPG
 from fuzzylogicpy.core.logic import Logic
@@ -25,9 +24,14 @@ class ExpressionEvaluation:
         try:
             header = self.df.head()
         except Exception as e:
-            print(e)
+            pass
         if not header:
-            header = self.df[0].keys()
+            try:
+                header = self.df[0].keys()
+            except Exception as e:
+                pass
+        if not header:
+            header = self.df.keys()
         for state in Operator.get_nodes_by_type(self.tree, NodeType.STATE):
             if state.cname in header:
                 values = []
@@ -93,7 +97,7 @@ class ExpressionEvaluation:
 
 
 def generate_membership_function(data: Dict, state: StateNode) -> Dict:
-    min_, max_ = data[state.cname].min(), data[state.cname].max()
+    min_, max_ = min(data[state.cname]), max(data[state.cname])
     b = random.uniform(min_, max_)
     g = random.uniform(b, max_)
     return {'F': FPG(b, g, random.random()), 'min': min_, 'max': max_}

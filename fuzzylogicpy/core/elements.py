@@ -117,7 +117,7 @@ class Operator(Node):
         for node in root.children:
             if node.type == type_:
                 found.append(node)
-            if isinstance(node, Operator):
+            if isinstance(node, Operator) and not isinstance(node, GeneratorNode):
                 found += Operator.get_nodes_by_type(node, type_)
         return found
 
@@ -127,7 +127,7 @@ class Operator(Node):
         for node in root.children:
             if node.editable:
                 editable.append(node)
-            if isinstance(node, Operator):
+            if isinstance(node, Operator) :
                 editable += Operator.get_editable_nodes(node)
         return editable
 
@@ -182,6 +182,11 @@ class StateNode(Node):
 
     def __repr__(self):
         return self.__str__()
+
+    def to_edn(self) -> str:
+        if self.membership:
+            return '{{:label \"{}\", :colname \"{}\", :f {}}}'.format(self.label,self.cname,self.membership.to_edn())
+        return '{{:label \"{}\", :colname \"{}\" }}'.format(self.label, self.cname)
 
 
 class GeneratorNode(Node):

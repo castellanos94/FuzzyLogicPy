@@ -3,11 +3,12 @@ from __future__ import annotations
 from typing import List, Tuple
 
 import numpy as np
-
 from fuzzylogicpy.core.membership_function import MembershipFunction
 
 
 class Sigmoid(MembershipFunction):
+    def to_edn(self) -> str:
+        return '[sigmoid {} {}]'.format(self.center, self.beta)
 
     def __init__(self, center: float, beta: float):
         super(Sigmoid, self).__init__()
@@ -60,6 +61,9 @@ class Sigmoid(MembershipFunction):
 
 
 class FPG(MembershipFunction):
+    def to_edn(self) -> str:
+        return '[FPG {} {} {}]'.format(self.gamma, self.beta, self.m)
+
     def get_values(self):
         return [self.beta, self.gamma, self.m]
 
@@ -81,7 +85,7 @@ class FPG(MembershipFunction):
     def evaluate(self, value) -> float:
         sigmoid = pow(Sigmoid(self.gamma, self.beta).evaluate(value), self.m)
         sigmoid2 = pow(1 - Sigmoid(self.gamma, self.beta).evaluate(value), 1 - self.m)
-        m_ = np.float(self.m)**np.float(self.m) * np.float(1 - self.m)**np.float(1 - self.m)
+        m_ = np.float(self.m) ** np.float(self.m) * np.float(1 - self.m) ** np.float(1 - self.m)
         return (sigmoid * sigmoid2) / m_
 
     def derive(self, value: float, param: string) -> float:
@@ -90,29 +94,29 @@ class FPG(MembershipFunction):
             #       e^(g(-b+x)) * (1-m)^(m-1) * m^-m * ( m* (1 / 1 + e^(g(b-x) )^(m-1) - 1) * (b-x)
             #  - _______________________________________________________________________
             #                              (1 + e^(g(-b + x))^2
-            a = m * (1/(1+np.exp(gamma *(beta-value))))**(m-1)
+            a = m * (1 / (1 + np.exp(gamma * (beta - value)))) ** (m - 1)
             a -= 1
-            a *= np.float(1-m)**np.float(m-1)
-            a *= np.float(m)**np.float(-m)
-            a *= np.exp(gamma*(value-beta))
-            a *= (beta-value)
-            b = (1 + np.exp(gamma*(value-beta)))**2
-            result = -a/b 
-            
-           
+            a *= np.float(1 - m) ** np.float(m - 1)
+            a *= np.float(m) ** np.float(-m)
+            a *= np.exp(gamma * (value - beta))
+            a *= (beta - value)
+            b = (1 + np.exp(gamma * (value - beta))) ** 2
+            result = -a / b
+
+
         elif param == 'beta':
             #    ge^(g(x-b)) * (1-m)^(m-1) * m^-m * (m*( 1/ 1+e^(g(b-x)) )^(m-1) -1)
             #  - ________________________________________________________________
             #                       (1 + e^(c(x-b)))2
-            a = m * (1/(1+np.exp(gamma *(beta-value))))**(m-1)
+            a = m * (1 / (1 + np.exp(gamma * (beta - value)))) ** (m - 1)
             a -= 1
-            a *= np.float(1-m)**np.float(m-1)
-            a *= np.float(m)**np.float(-m)
-            a *= gamma * np.exp(gamma*(value-beta))
-            b = (1 + np.exp(gamma*(value-beta)))**2
-            result = -a/b
-            
-        #elif param == 'm':
+            a *= np.float(1 - m) ** np.float(m - 1)
+            a *= np.float(m) ** np.float(-m)
+            a *= gamma * np.exp(gamma * (value - beta))
+            b = (1 + np.exp(gamma * (value - beta))) ** 2
+            result = -a / b
+
+        # elif param == 'm':
         #    Sg = Sigmoid(gamma, beta).evaluate(value)
         #    #  (1-m)^(-1+m) * m^-m * (1 -Sg)^(1-m) * Sg**m * (log(1-m) - log(m) - log(1-Sg) + log(Sg))
         #    a = (1 - m) ** (-1 + m)
@@ -126,6 +130,9 @@ class FPG(MembershipFunction):
 
 
 class Gamma(MembershipFunction):
+    def to_edn(self) -> str:
+        return '[gamma {} {}]'.format(self.a, self.b)
+
     def __init__(self, a: float, b: float):
         super(Gamma, self).__init__()
         self.a = a
@@ -150,6 +157,9 @@ class Gamma(MembershipFunction):
 
 
 class Gaussian(MembershipFunction):
+    def to_edn(self) -> str:
+        return '[gaussian {} {}]'.format(self.center, self.deviation)
+
     def __init__(self, center: float, deviation: float):
         super(Gaussian, self).__init__()
         self.center = center
@@ -195,6 +205,9 @@ class GBell(MembershipFunction):
 
 
 class Triangular(Gamma):
+    def to_edn(self) -> str:
+        return '[triangular {} {} {}]'.format(self.a, self.b, self.c)
+
     def __init__(self, a: float, b: float, c: float):
         super(Triangular, self).__init__(a, b)
         self.c = c
@@ -216,6 +229,9 @@ class Triangular(Gamma):
 
 
 class Trapezoidal(Triangular):
+    def to_edn(self) -> str:
+        return '[trapezoidal {} {} {} {}]'.format(self.a, self.b, self.c, self.d)
+
     def __init__(self, a: float, b: float, c: float, d: float):
         super(Trapezoidal, self).__init__(a, b, c)
         self.d = d
@@ -237,6 +253,9 @@ class Trapezoidal(Triangular):
 
 
 class LGamma(Gamma):
+    def to_edn(self) -> str:
+        return '[Lgamma {} {}]'.format(self.a, self.b)
+
     def evaluate(self, v) -> float:
         if v <= self.a:
             return 0
@@ -247,6 +266,9 @@ class LGamma(Gamma):
 
 
 class LTrapezoidal(Gamma):
+    def to_edn(self) -> str:
+        return '[Ltrapezoidal {} {}]'.format(self.a, self.b)
+
     def evaluate(self, v) -> float:
         if v < self.a:
             return 0
@@ -262,6 +284,9 @@ class LTrapezoidal(Gamma):
 
 
 class RTrapezoidal(Gamma):
+    def to_edn(self) -> str:
+        return '[Rtrapezoidal {} {}]'.format(self.a, self.b)
+
     def evaluate(self, v) -> float:
         if v < self.a:
             return 1
@@ -277,6 +302,9 @@ class RTrapezoidal(Gamma):
 
 
 class Singleton(MembershipFunction):
+    def to_edn(self) -> str:
+        return '[singleton {}]'.format(self.a)
+
     def __init__(self, a: float):
         super(Singleton, self).__init__()
         self.a = a
@@ -320,12 +348,18 @@ class Nominal(MembershipFunction):
 
 
 class NSigmoid(Sigmoid):
+    def to_edn(self) -> str:
+        return '[-sigmoid {} {}]'.format(self.center, self.beta)
+
     def evaluate(self, v) -> float:
         return 1 - (1 / (
                 1 + (np.exp(-((np.log(0.99) - np.log(0.01)) / (self.center - self.beta)) * (v - self.center)))))
 
 
 class PseudoExp(Gaussian):
+    def to_edn(self) -> str:
+        return '[pseudo-exp {} {}]'.format(self.center, self.deviation)
+
     def evaluate(self, v) -> float:
         return 1 / (1 + self.deviation * pow((v - self.center), 2))
 
@@ -334,6 +368,9 @@ class SForm(Gamma):
     """
     S-shaped membership function MathWorks-based implementation
     """
+
+    def to_edn(self) -> str:
+        return '[Sform {} {}]'.format(self.a, self.b)
 
     def evaluate(self, v) -> float:
         if v <= self.a:
@@ -349,6 +386,8 @@ class ZForm(Gamma):
     """
     Z-shaped memberhip function MathWorks-based implementation
     """
+    def to_edn(self) -> str:
+        return '[Zform {} {}]'.format(self.a, self.b)
 
     def evaluate(self, v) -> float:
         if v <= self.a:
