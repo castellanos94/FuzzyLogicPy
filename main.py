@@ -59,12 +59,16 @@ def test_kdflc():
                              [NodeType.NOT])
     generators = {props.label: props, category.label: category}
     expression = '(IMP "{}" "{}")'.format(props.label, category.label)
+    expression = '(IMP (AND {}) "quality")'.format(
+        str([str(v) for v in states.keys() if 'quality' != v]).replace('\'', '"').replace(',', '').replace('[',
+                                                                                                           '').replace(
+            ']', ''))
     # expression = '(IMP "{}" "quality")'.format(props.label)
     # expression = '(IMP "alcohol" "quality")'
     # expression = '("properties")'
-    parser = ExpressionParser(expression, states, generators)
+    parser = ExpressionParser(expression, states, {})
     root = parser.parser()
-    algorithm = KDFLC(data, root, states, GMBC(), 50, 10, 30, 0.95, 0.1)
+    algorithm = KDFLC(data, root, states, GMBC(), 100, 50, 15, 0.95, 0.1)
     algorithm.discovery()
     for item in algorithm.predicates:
         print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
@@ -122,9 +126,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # test_evaluation()
     random.seed(1)
-    # test_kdflc()
+    test_kdflc()
     # test_classification()
-    test = FPG(0.1, 5, 0.9)
-    print(test)
-    print(FPG([0, 2, 1.0]))
+
     print("--- %s seconds ---" % (time.time() - start_time))

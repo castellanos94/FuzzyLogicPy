@@ -25,13 +25,7 @@ class ExpressionEvaluation:
             header = self.df.head()
         except Exception as e:
             pass
-        if not header:
-            try:
-                header = self.df[0].keys()
-            except Exception as e:
-                pass
-        if not header:
-            header = self.df.keys()
+
         for state in Operator.get_nodes_by_type(self.tree, NodeType.STATE):
             if state.cname in header:
                 values = []
