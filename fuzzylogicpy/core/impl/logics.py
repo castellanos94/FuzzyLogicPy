@@ -62,7 +62,10 @@ class GMBC(Logic):
         return pow(self.imp_(a, b) * self.imp_(b, a), 0.5)
 
     def for_all(self, values) -> float:
-        return pow(math.e, (1 / len(values)) * sum([np.log(v) for v in values if v != 0]))
+        _exponent = (1 / len(values)) * sum([np.log(v) for v in values if v != 0])
+        if _exponent > 0:
+            return pow(math.e, _exponent)
+        return 0
 
     def exist(self, values) -> float:
         return 1 - pow(math.e, ((1 / len(values)) * sum([np.log(1 - v) for v in values if v != 0 and v != 1])))

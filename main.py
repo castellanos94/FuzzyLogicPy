@@ -8,7 +8,7 @@ import pandas as pd
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer, KDFLC
 from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType, Operator
 from fuzzylogicpy.core.impl.logics import GMBC
-from fuzzylogicpy.core.impl.memberships import Sigmoid, NSigmoid, Nominal, FPG
+from fuzzylogicpy.core.impl.memberships import Sigmoid, NSigmoid, Nominal
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
 from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json, QueryExecutor
 
@@ -55,9 +55,12 @@ def test_kdflc():
 
     props = GeneratorNode(2, 'properties', [v for v in states.keys() if 'quality' != v and 'alcohol' != v],
                           [NodeType.EQV, NodeType.AND, NodeType.NOT], 3)
+
+    _all = GeneratorNode(2, 'columns', [v for v in states.keys()],
+                         [NodeType.EQV, NodeType.AND, NodeType.NOT, NodeType.OR,NodeType.IMP])
     category = GeneratorNode(1, 'category', [v for v in states.keys() if 'quality' == v or 'alcohol' == v],
                              [NodeType.NOT])
-    generators = {props.label: props, category.label: category}
+    generators = {props.label: props, category.label: category, _all.label: _all}
     expression = '(IMP "{}" "{}")'.format(props.label, category.label)
     expression = '(IMP (AND {}) "quality")'.format(
         str([str(v) for v in states.keys() if 'quality' != v]).replace('\'', '"').replace(',', '').replace('[',
@@ -66,16 +69,17 @@ def test_kdflc():
     # expression = '(IMP "{}" "quality")'.format(props.label)
     # expression = '(IMP "alcohol" "quality")'
     # expression = '("properties")'
-    parser = ExpressionParser(expression, states, {})
+    expression = '("columns")'
+    parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
     algorithm = KDFLC(data, root, states, GMBC(), 100, 50, 15, 0.95, 0.1)
     algorithm.discovery()
-    for item in algorithm.predicates:
-        print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
+    # for item in algorithm.predicates:
+    #    print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
     # Re evaluating
-    for item in algorithm.predicates:
-        item = ExpressionEvaluation(data, GMBC(), item).eval()
-        print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
+    # for item in algorithm.predicates:
+    #    item = ExpressionEvaluation(data, GMBC(), item).eval()
+    #    print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
     algorithm.export_data('results/discovery.xlsx')
 
 
