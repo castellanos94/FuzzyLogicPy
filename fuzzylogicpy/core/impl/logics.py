@@ -61,7 +61,7 @@ class GMBC(Logic):
         return 0
 
     def exist(self, values) -> float:
-        return 1 - pow(math.e, ((1 / len(values)) * sum([np.log(1 - v) for v in values if v != 0 and v != 1])))
+        return 1 - pow(math.e, ((1 / len(values)) * sum([np.log(1 - v) for v in values if v != 1])))
 
     def and_(self, values) -> float:
         return pow(reduce(lambda x, y: x * y, values), 1 / len(values))
