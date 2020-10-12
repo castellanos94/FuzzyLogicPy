@@ -23,11 +23,11 @@ def test_evaluation():
     parser = ExpressionParser('(IMP (NOT (AND "high alcohol" "low pH")) "high quality")', states, dict())
     tree = parser.parser()
 
-    evaluator = ExpressionEvaluation(data, GMBC(), tree)
+    evaluator = ExpressionEvaluation(data, GMBC(natural_imp=True), tree)
     print(GMBC())
     print(evaluator.eval(), tree.fitness)
     print(tree.to_json())
-    evaluator.export_data('results/evaluation.xlsx')
+    evaluator.export_data('results/evaluation-natural-imp.xlsx')
 
 
 def test_MembershipFunctionOptimizer():
@@ -128,9 +128,9 @@ def test_parser():
 
 if __name__ == '__main__':
     start_time = time.time()
-    # test_evaluation()
+    test_evaluation()
     random.seed(1)
-    test_kdflc()
+    # test_kdflc()
     # test_classification()
 
     print("--- %s seconds ---" % (time.time() - start_time))

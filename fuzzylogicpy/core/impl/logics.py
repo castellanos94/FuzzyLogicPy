@@ -56,7 +56,7 @@ class GMBC(Logic):
 
     def for_all(self, values) -> float:
         _exponent = (1 / len(values)) * sum([np.log(v) for v in values if v != 0])
-        if _exponent > 0:
+        if abs(_exponent) > 0:
             return pow(math.e, _exponent)
         return 0
 
