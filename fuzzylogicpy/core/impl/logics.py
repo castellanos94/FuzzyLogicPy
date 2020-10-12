@@ -13,10 +13,10 @@ class ZadehLogic(Logic):
     """
 
     def and_(self, values) -> float:
-        return max(values)
+        return min(values)
 
     def or_(self, values) -> float:
-        return min(values)
+        return max(values)
 
     def not_(self, value: float) -> float:
         return 1 - value
@@ -54,13 +54,6 @@ class GMBC(Logic):
     def or_test(self, a: float, b: float) -> float:
         return 1 - pow((1 - a) * (1 - b), 0.5)
 
-    def imp_(self, a: float, b: float) -> float:
-        neg = 1 - a
-        return 1 - pow((1 - neg) * (1 - b), 0.5)
-
-    def eqv_(self, a: float, b: float) -> float:
-        return pow(self.imp_(a, b) * self.imp_(b, a), 0.5)
-
     def for_all(self, values) -> float:
         _exponent = (1 / len(values)) * sum([np.log(v) for v in values if v != 0])
         if _exponent > 0:
@@ -90,12 +83,6 @@ class AMBC(Logic):
 
     def or_test(self, a: float, b: float) -> float:
         return 1.0 - np.sqrt(min((1.0 - a), (1.0 - b)) * 0.5 * ((1.0 - a) + (1.0 - b)))
-
-    def imp_(self, a: float, b: float) -> float:
-        return self.or_test(self.not_(a), b)
-
-    def eqv_(self, a: float, b: float) -> float:
-        return self.and_test(self.imp_(a, b), self.imp_(b, a))
 
     def for_all(self, values) -> float:
         return np.sqrt(min(values) * sum(values) * 1.0 / len(values))
