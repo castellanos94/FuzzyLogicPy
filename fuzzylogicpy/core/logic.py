@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class Logic(ABC):
-    def __init__(self, natural_imp: bool = True):
+    def __init__(self, natural_imp: bool = False):
         self.natural_imp = natural_imp
 
     @abstractmethod
@@ -45,4 +45,4 @@ class Logic(ABC):
         return self.and_test(self.imp_(a, b), self.imp_(b, a))
 
     def __str__(self):
-        return self.name()
+        return self.name() + " natural implication : " + str(self.natural_imp)

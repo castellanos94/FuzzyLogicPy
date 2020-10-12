@@ -20,14 +20,20 @@ def test_evaluation():
     alcohol = StateNode('high alcohol', 'alcohol', Sigmoid(11.65, 9))
     ph = StateNode('low pH', 'pH', NSigmoid(3.375, 2.93))
     states = {quality.label: quality, alcohol.label: alcohol, ph.label: ph}
-    parser = ExpressionParser('(IMP (NOT (AND "high alcohol" "low pH")) "high quality")', states, dict())
+    parser = ExpressionParser('(IMP (AND "high alcohol" "low pH") "high quality")', states, dict())
     tree = parser.parser()
-
-    evaluator = ExpressionEvaluation(data, GMBC(natural_imp=True), tree)
-    print(GMBC())
+    _logic = GMBC(natural_imp=True)
+    print(_logic)
+    evaluator = ExpressionEvaluation(data, _logic, tree)
     print(evaluator.eval(), tree.fitness)
     print(tree.to_json())
     evaluator.export_data('results/evaluation-natural-imp.xlsx')
+    _logic = GMBC()
+    print(_logic)
+    evaluator = ExpressionEvaluation(data, _logic, tree)
+    print(evaluator.eval(), tree.fitness)
+    print(tree.to_json())
+    evaluator.export_data('results/evaluation-zadeh-imp.xlsx')
 
 
 def test_MembershipFunctionOptimizer():
@@ -57,7 +63,7 @@ def test_kdflc():
                           [NodeType.EQV, NodeType.AND, NodeType.NOT], 3)
 
     _all = GeneratorNode(2, 'columns', [v for v in states.keys()],
-                         [NodeType.EQV, NodeType.AND, NodeType.NOT, NodeType.OR,NodeType.IMP])
+                         [NodeType.EQV, NodeType.AND, NodeType.NOT, NodeType.OR, NodeType.IMP])
     category = GeneratorNode(1, 'category', [v for v in states.keys() if 'quality' == v or 'alcohol' == v],
                              [NodeType.NOT])
     generators = {props.label: props, category.label: category, _all.label: _all}
