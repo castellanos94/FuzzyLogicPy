@@ -5,11 +5,13 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+
 from fuzzylogicpy.core.elements import Operator, NodeType, Node, StateNode
 from fuzzylogicpy.core.impl.memberships import FPG
 from fuzzylogicpy.core.logic import Logic
 
 __EPS = 1.0e-14
+__TOLERANCE = 0.01
 
 
 class ExpressionEvaluation:
@@ -94,7 +96,11 @@ def generate_membership_function(data: Dict, state: StateNode) -> Dict:
     min_, max_ = min(data[state.cname]), max(data[state.cname])
     b = random.uniform(min_, max_)
     g = random.uniform(b, max_)
-    return {'F': FPG(b, g, random.random()), 'min': min_, 'max': max_}
+    t = min(__TOLERANCE, abs(min_ - max_))
+    while abs(b - g) <= t:
+        b = random.uniform(min_, max_)
+        g = random.uniform(b, max_)
+    return {'F': FPG(b, g, random.random()), 'min': min_, 'max': max_, 'tolerance': t}
 
 
 def repair_membership_function(bundle: Dict):
@@ -107,6 +113,17 @@ def repair_membership_function(bundle: Dict):
         membership.gamma += membership.beta
         membership.beta = membership.gamma - membership.beta
         membership.gamma -= membership.beta
+    if abs(membership.beta - membership.gamma) <= bundle['tolerance']:
+        membership.gamma = max(membership.beta, membership.gamma)
+        if abs(membership.gamma - bundle[min]) <= bundle['tolerance'] or membership.gamma == bundle['min']:
+            membership.gamma = random.random([bundle['min'], bundle['max']])
+            if membership.gamma < membership.beta:
+                membership.gamma += membership.beta
+                membership.beta = membership.gamma - membership.beta
+                membership.gamma -= membership.beta
+        while abs(membership.beta - membership.gamma) <= bundle['tolerance']:
+            membership.beta = random.random(bundle['min'], membership.gamma)
+
     if membership.m > 1 or membership.m < 0 or np.isnan(membership.m) or membership.m < __EPS:
         membership.m = random.random()
 
@@ -274,7 +291,7 @@ class MembershipFunctionOptimizer:
 def is_valid(individual):
     if isinstance(individual, Operator):
         states_labels = [item.label for item in individual.children if item.type == NodeType.STATE]
-        return len(set(states_labels)) == len(states_labels)
+        return len(states_labels) <= len(set(states_labels))
     else:
         return True
 

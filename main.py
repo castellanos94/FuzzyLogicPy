@@ -63,7 +63,7 @@ def test_kdflc():
                           [NodeType.EQV, NodeType.AND, NodeType.NOT], 3)
 
     _all = GeneratorNode(2, 'columns', [v for v in states.keys()],
-                         [NodeType.EQV, NodeType.AND, NodeType.NOT, NodeType.OR, NodeType.IMP])
+                         [NodeType.EQV, NodeType.AND, NodeType.OR, NodeType.IMP])
     category = GeneratorNode(1, 'category', [v for v in states.keys() if 'quality' == v or 'alcohol' == v],
                              [NodeType.NOT])
     generators = {props.label: props, category.label: category, _all.label: _all}
@@ -134,9 +134,9 @@ def test_parser():
 
 if __name__ == '__main__':
     start_time = time.time()
-    test_evaluation()
+    # test_evaluation()
     random.seed(1)
-    # test_kdflc()
+    test_kdflc()
     # test_classification()
 
     print("--- %s seconds ---" % (time.time() - start_time))
