@@ -77,7 +77,7 @@ def test_kdflc():
     # expression = '(IMP "alcohol" "quality")'
     # expression = '("properties")'
     expression = '("columns")'
-    expression = '(IMP "alcohol" "quality")'
+    # expression = '(IMP "alcohol" "quality")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
     algorithm = KDFLC(data, root, states, GMBC(), 100, 50, 15, 0.95, 0.1)
