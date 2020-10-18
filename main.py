@@ -88,7 +88,7 @@ def test_kdflc():
     # for item in algorithm.predicates:
     #    item = ExpressionEvaluation(data, GMBC(), item).eval()
     #    print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
-    algorithm.export_data('results/discovery_mfo_sbx_s.xlsx')
+    algorithm.export_data('results/discovery.xlsx')
 
 
 def test_classification():
