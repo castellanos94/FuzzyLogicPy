@@ -127,6 +127,29 @@ def repair_membership_function(bundle: Dict):
         membership.m = random.random()
 
 
+def uniform_crossover_membership(parent_a: Dict, parent_b: Dict, probability: float = 1) -> List[Dict]:
+    if random.random() <= probability:
+        a, b = copy.deepcopy(parent_a), copy.deepcopy(parent_b)
+        _a_values, _b_values = a['F'].get_values(), b['F'].get_values()
+        for idx in range(len(_a_values)):
+            value_x1, value_x2 = _a_values[idx], _b_values[idx]
+            if random.random() <= 0.5:
+                _a_values[idx] = value_x2
+                _b_values[idx] = value_x1
+        a['F'].set_values(_a_values)
+        b['F'].set_values(_b_values)
+        return [a, b]
+    return [parent_a, parent_b]
+
+
+def simple_mutation(mutation_rate: float, bundle: Dict) -> None:
+    __values = bundle['F'].get_values()
+    for idx, x in enumerate(__values):
+        if random.random() <= mutation_rate:
+            __values[idx] = random.uniform(bundle['min'], bundle['max'])
+    bundle['F'].set_values(__values)
+
+
 def crossover_membership_function(parent_a: Dict, parent_b: Dict, probability: float = 1,
                                   distribution_index: float = 20) -> List[Dict]:
     rand = random.random()
