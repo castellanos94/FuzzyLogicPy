@@ -443,7 +443,7 @@ class KDFLC:
             for idx in range(n_):
                 v = random.choice(population)
                 __pt.append(v)
-                population.remove(v)
+                # population.remove(v)
 
             __qt = []
             idx = 0
@@ -462,13 +462,18 @@ class KDFLC:
                     population.remove(individual)
             self.ensure_diversity()
             if len(population) > self.num_pop:
-                population = population[:self.num_pop]
+                population = [max(population) + random.sample(population,
+                                                              self.num_pop - 1 if self.num_pop - 1 >= 1 else self.num_pop)]
 
+            was_replaced = 0
             for idx in range(len(population)):
                 if random.random() <= self.mut_percentage:
                     _child = self.__generate()
                     self.optimizer.optimize(_child)
                     population[idx] = _child
+                    was_replaced += 1
+                if was_replaced > 3:
+                    break
             # print('diversity: ', was_replaced)
 
         self.predicates.sort(reverse=True)
