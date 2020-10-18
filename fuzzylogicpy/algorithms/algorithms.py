@@ -123,7 +123,6 @@ def repair_membership_function(bundle: Dict):
                 membership.gamma -= membership.beta
         while abs(membership.beta - membership.gamma) <= bundle['tolerance']:
             membership.beta = random.random(bundle['min'], membership.gamma)
-
     if membership.m > 1 or membership.m < 0 or np.isnan(membership.m) or membership.m < __EPS:
         membership.m = random.random()
 
