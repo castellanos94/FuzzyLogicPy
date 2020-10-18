@@ -94,8 +94,8 @@ class ExpressionEvaluation:
 
 def generate_membership_function(data: Dict, state: StateNode) -> Dict:
     min_, max_ = min(data[state.cname]), max(data[state.cname])
-    b = random.uniform(min_, max_)
-    g = random.uniform(b, max_)
+    g = random.uniform(min_, max_)
+    b = random.uniform(min_, g)
     t = min(__TOLERANCE, abs(min_ - max_))
     while abs(b - g) <= t:
         b = random.uniform(min_, max_)
@@ -241,7 +241,7 @@ class MembershipFunctionOptimizer:
                  operators=None):
         if operators is None:
             operators = {'repair': repair_membership_function, 'generate': generate_membership_function,
-                         'crossover': uniform_crossover_membership, 'mutation': simple_mutation}
+                         'crossover': crossover_membership_function, 'mutation': mutation_membership_function}
             self.data = data
             self.logic = logic
             self.min_value = min_value
@@ -426,11 +426,13 @@ class KDFLC:
         # removing elements from list
         for individual in self.predicates:
             population.remove(individual)
+        # Incorporating new predicates
+        for _ in range(int(self.num_pop - len(population))):
+            population.append(self.optimizer.optimize(self.__generate()))
+        # Checking diversity results
+        self.ensure_diversity()
         # Generational For
         while self.current_iteration < self.num_iter and len(self.predicates) < self.num_result:
-            # Incorporating new predicates
-            for _ in range(int(self.num_pop - len(population))):
-                population.append(self.optimizer.optimize(self.__generate()))
             print('Iteration: ', self.current_iteration, ', Results: ', len(self.predicates))
             self.current_iteration += 1
             # population = [self.optimizer.optimize(individual) for individual in population]
@@ -453,9 +455,16 @@ class KDFLC:
             self.predicates += [individual for individual in __qt if
                                 individual.fitness >= self.min_truth_value and individual not in self.predicates
                                 and is_valid(individual)]
+            self.ensure_diversity()
             population += [item for item in __qt if is_valid(item) and item not in self.predicates]
             if len(population) > self.num_pop:
                 population = population[:self.num_pop]
+            for idx in range(len(population)):
+                if random.random() <= self.mut_percentage:
+                    _child = self.__generate()
+                    self.optimizer.optimize(_child)
+                    population[idx] = _child
+            # print('diversity: ', was_replaced)
 
         self.predicates.sort(reverse=True)
         if len(self.predicates) == 0:
@@ -476,3 +485,16 @@ class KDFLC:
             data_out.to_excel(output_path, index=False)
         else:
             raise RuntimeError('Invalid output file format')
+
+    def ensure_diversity(self):
+        # Looking for same elements for ensure not proximity between fitness
+        _expressions = {}
+        for item in self.predicates:
+            if str(item) in _expressions.keys():
+                _expressions[str(item)].append(item)
+            else:
+                _expressions[str(item)] = [item]
+        self.predicates = []
+        for k, v in _expressions.items():
+            best_ = max(v)
+            self.predicates += [_v for _v in v if best_ == _v or _v.fitness <= best_.fitness * 0.98]

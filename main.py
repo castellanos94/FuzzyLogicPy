@@ -77,6 +77,7 @@ def test_kdflc():
     # expression = '(IMP "alcohol" "quality")'
     # expression = '("properties")'
     expression = '("columns")'
+    expression = '(IMP "alcohol" "quality")'
     parser = ExpressionParser(expression, states, generators)
     root = parser.parser()
     algorithm = KDFLC(data, root, states, GMBC(), 100, 50, 15, 0.95, 0.1)
@@ -87,7 +88,7 @@ def test_kdflc():
     # for item in algorithm.predicates:
     #    item = ExpressionEvaluation(data, GMBC(), item).eval()
     #    print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
-    algorithm.export_data('results/discovery_mfo_simple.xlsx')
+    algorithm.export_data('results/discovery_mfo_sbx_s.xlsx')
 
 
 def test_classification():
@@ -140,11 +141,4 @@ if __name__ == '__main__':
     test_kdflc()
     # test_MembershipFunctionOptimizer()
     # test_classification()
-    """
-    Iteration:  1 , Results:  12
-Iteration:  2 , Results:  12
-Num results:  16 ,Max Value:  0.9999999999999997
---- 213.36143946647644 seconds ---
-    """
-
     print("--- %s seconds ---" % (time.time() - start_time))
