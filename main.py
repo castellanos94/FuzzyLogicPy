@@ -51,6 +51,7 @@ def test_MembershipFunctionOptimizer():
     print(root, root.fitness)
     mfo.optimize(root)
     print(root, root.fitness)
+    print(root.to_json())
 
 
 def test_kdflc():
@@ -86,7 +87,7 @@ def test_kdflc():
     # for item in algorithm.predicates:
     #    item = ExpressionEvaluation(data, GMBC(), item).eval()
     #    print(item.fitness, item, 'Grade: ', Operator.get_grade(item))
-    algorithm.export_data('results/discovery.xlsx')
+    algorithm.export_data('results/discovery_mfo_simple.xlsx')
 
 
 def test_classification():
@@ -137,6 +138,13 @@ if __name__ == '__main__':
     # test_evaluation()
     random.seed(1)
     test_kdflc()
+    # test_MembershipFunctionOptimizer()
     # test_classification()
+    """
+    Iteration:  1 , Results:  12
+Iteration:  2 , Results:  12
+Num results:  16 ,Max Value:  0.9999999999999997
+--- 213.36143946647644 seconds ---
+    """
 
     print("--- %s seconds ---" % (time.time() - start_time))

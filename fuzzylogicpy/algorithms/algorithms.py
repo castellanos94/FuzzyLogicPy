@@ -142,7 +142,7 @@ def uniform_crossover_membership(parent_a: Dict, parent_b: Dict, probability: fl
     return [parent_a, parent_b]
 
 
-def simple_mutation(mutation_rate: float, bundle: Dict) -> None:
+def simple_mutation(bundle: Dict, mutation_rate: float) -> None:
     __values = bundle['F'].get_values()
     for idx, x in enumerate(__values):
         if random.random() <= mutation_rate:
@@ -208,7 +208,7 @@ def crossover_membership_function(parent_a: Dict, parent_b: Dict, probability: f
     return [parent_a, parent_b]
 
 
-def mutation_membership_function(mutation_rate: float, eta: float, bundle: Dict) -> None:
+def mutation_membership_function(bundle: Dict, mutation_rate: float, eta: float = 20) -> None:
     __values = bundle['F'].get_values()
     for idx, x in enumerate(__values):
         if random.random() <= mutation_rate:
@@ -241,7 +241,7 @@ class MembershipFunctionOptimizer:
                  operators=None):
         if operators is None:
             operators = {'repair': repair_membership_function, 'generate': generate_membership_function,
-                         'crossover': crossover_membership_function, 'mutation': mutation_membership_function}
+                         'crossover': uniform_crossover_membership, 'mutation': simple_mutation}
             self.data = data
             self.logic = logic
             self.min_value = min_value
@@ -288,7 +288,7 @@ class MembershipFunctionOptimizer:
                         children += self.operators['crossover'](a, b)
                         idx += 2
                     for v in children:
-                        self.operators['mutation'](self.mutation_rate, 20, v)
+                        self.operators['mutation'](v, self.mutation_rate)
                         self.operators['repair'](v)
                     functions_[key] = children
                     if fitness_ is None:
