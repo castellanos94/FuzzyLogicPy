@@ -338,11 +338,11 @@ class KDFLC:
                                                      NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else [tree]
         self.current_iteration = 0
 
-    def do_random_predicate(self) -> Operator:
+    def do_random_predicate(self, _index: int) -> Operator:
         predicate = copy.deepcopy(self.predicate)
         genes = Operator.get_nodes_by_type(predicate, NodeType.GENERATOR)
         for idx, gen in enumerate(genes):
-            new_value = gen.generate(self.states, True if idx < int(len(genes) / 2) else False)
+            new_value = gen.generate(self.states, _index < int(self.num_pop / 2))
             if gen != predicate:
                 Operator.replace_node(predicate, gen, new_value)
             else:
@@ -417,7 +417,7 @@ class KDFLC:
 
     def discovery(self) -> None:
         # Generate de population
-        population = [self.optimizer.optimize(self.do_random_predicate()) for _ in range(self.num_pop)]
+        population = [self.optimizer.optimize(self.do_random_predicate(_)) for _ in range(self.num_pop)]
         self.current_iteration = 1
         # Copying elements to result lists
         self.predicates = [individual for individual in population if individual.fitness >= self.min_truth_value]
@@ -429,7 +429,7 @@ class KDFLC:
         # Incorporating new predicates
         if len(self.predicates) < self.num_result:
             for _ in range(int(self.num_pop - len(population))):
-                population.append(self.optimizer.optimize(self.do_random_predicate()))
+                population.append(self.optimizer.optimize(self.do_random_predicate(_)))
 
         # Generational For
         while self.current_iteration < self.num_iter and len(self.predicates) < self.num_result:
@@ -466,7 +466,7 @@ class KDFLC:
             was_replaced = 0
             for idx in range(len(population)):
                 if random.random() <= self.mut_percentage:
-                    _child = self.do_random_predicate()
+                    _child = self.do_random_predicate(idx)
                     self.optimizer.optimize(_child)
                     population[idx] = _child
                     was_replaced += 1
