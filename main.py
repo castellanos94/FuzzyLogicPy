@@ -141,4 +141,9 @@ if __name__ == '__main__':
     test_kdflc()
     # test_MembershipFunctionOptimizer()
     # test_classification()
+    """
+Iteration:  6 , Results:  14
+Num results:  15 ,Max Value:  0.9999447430311332
+--- 270.20550751686096 seconds ---
+"""
     print("--- %s seconds ---" % (time.time() - start_time))

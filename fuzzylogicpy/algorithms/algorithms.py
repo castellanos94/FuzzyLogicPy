@@ -338,7 +338,7 @@ class KDFLC:
                                                      NodeType.GENERATOR) if tree.type != NodeType.GENERATOR else [tree]
         self.current_iteration = 0
 
-    def __generate(self) -> Operator:
+    def do_random_predicate(self) -> Operator:
         predicate = copy.deepcopy(self.predicate)
         genes = Operator.get_nodes_by_type(predicate, NodeType.GENERATOR)
         for idx, gen in enumerate(genes):
@@ -417,20 +417,20 @@ class KDFLC:
 
     def discovery(self) -> None:
         # Generate de population
-        population = [self.__generate() for _ in range(self.num_pop)]
-        # Evaluating population
-        population = [self.optimizer.optimize(individual) for individual in population]
+        population = [self.optimizer.optimize(self.do_random_predicate()) for _ in range(self.num_pop)]
         self.current_iteration = 1
         # Copying elements to result lists
         self.predicates = [individual for individual in population if individual.fitness >= self.min_truth_value]
         # removing elements from list
         for individual in self.predicates:
             population.remove(individual)
-        # Incorporating new predicates
-        for _ in range(int(self.num_pop - len(population))):
-            population.append(self.optimizer.optimize(self.__generate()))
         # Checking diversity results
         self.ensure_diversity()
+        # Incorporating new predicates
+        if len(self.predicates) < self.num_result:
+            for _ in range(int(self.num_pop - len(population))):
+                population.append(self.optimizer.optimize(self.do_random_predicate()))
+
         # Generational For
         while self.current_iteration < self.num_iter and len(self.predicates) < self.num_result:
             print('Iteration: ', self.current_iteration, ', Results: ', len(self.predicates))
@@ -466,7 +466,7 @@ class KDFLC:
             was_replaced = 0
             for idx in range(len(population)):
                 if random.random() <= self.mut_percentage:
-                    _child = self.__generate()
+                    _child = self.do_random_predicate()
                     self.optimizer.optimize(_child)
                     population[idx] = _child
                     was_replaced += 1
