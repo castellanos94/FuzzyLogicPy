@@ -462,8 +462,8 @@ class KDFLC:
                     population.remove(individual)
             self.ensure_diversity()
             if len(population) > self.num_pop:
-                population = [max(population) + random.sample(population,
-                                                              self.num_pop - 1 if self.num_pop - 1 >= 1 else self.num_pop)]
+                population = [max(population)] + random.sample(population,
+                                                               self.num_pop - 1 if self.num_pop - 1 >= 1 else self.num_pop)
 
             was_replaced = 0
             for idx in range(len(population)):
