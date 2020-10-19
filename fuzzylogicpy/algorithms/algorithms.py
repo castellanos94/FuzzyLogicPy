@@ -452,7 +452,7 @@ class KDFLC:
                 idx += 2
             # Mutation  and Evaluation predicate
             __qt = [self.mutation_predicate(item) for item in __qt]
-            population += [item for item in __qt if is_valid(item) and item not in self.predicates]
+            population += [item for item in __qt if item not in population]
 
             self.predicates += [individual for individual in population if
                                 individual.fitness >= self.min_truth_value and individual not in self.predicates
@@ -461,10 +461,8 @@ class KDFLC:
                 if individual in population:
                     population.remove(individual)
             self.ensure_diversity()
-            if len(population) > self.num_pop:
-                population = [max(population)] + random.sample(population,
-                                                               self.num_pop - 1 if self.num_pop - 1 >= 1 else self.num_pop)
-
+            population.sort(reverse=True)
+            population = population[:self.num_pop]
             was_replaced = 0
             for idx in range(len(population)):
                 if random.random() <= self.mut_percentage:
