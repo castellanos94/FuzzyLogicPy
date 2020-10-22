@@ -8,7 +8,7 @@ import pandas as pd
 from fuzzylogicpy.algorithms.algorithms import ExpressionEvaluation, MembershipFunctionOptimizer, KDFLC
 from fuzzylogicpy.core.elements import StateNode, GeneratorNode, NodeType, Operator
 from fuzzylogicpy.core.impl.logics import GMBC
-from fuzzylogicpy.core.impl.memberships import Sigmoid, NSigmoid, Nominal
+from fuzzylogicpy.core.impl.memberships import Sigmoid, NSigmoid, Nominal, FPG
 from fuzzylogicpy.parser.expression_parser import ExpressionParser
 from fuzzylogicpy.parser.query import EvaluationQuery, query_to_json, LogicType, query_from_json, QueryExecutor
 
@@ -138,6 +138,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # test_evaluation()
     random.seed(1)
+<<<<<<< Updated upstream
     test_kdflc()
     # test_MembershipFunctionOptimizer()
     # test_classification()
@@ -146,4 +147,11 @@ Iteration:  6 , Results:  14
 Num results:  15 ,Max Value:  0.9999447430311332
 --- 270.20550751686096 seconds ---
 """
+=======
+    # test_kdflc()
+    # test_classification()
+    test = FPG(0.1, 5, 0.9)
+    print(test)
+    print(FPG([0, 2, 1.0]))
+>>>>>>> Stashed changes
     print("--- %s seconds ---" % (time.time() - start_time))

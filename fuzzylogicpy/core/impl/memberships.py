@@ -91,22 +91,22 @@ class FPG(MembershipFunction):
         m_ = np.float(self.m) ** np.float(self.m) * np.float(1 - self.m) ** np.float(1 - self.m)
         return (sigmoid * sigmoid2) / m_
 
-    def derive(self, value: float, param: str) -> float:
+    def derive(self, value: float, param: string) -> float:
         gamma, beta, m = self.get_values()
         if param == 'gamma':
             #       e^(g(-b+x)) * (1-m)^(m-1) * m^-m * ( m* (1 / 1 + e^(g(b-x) )^(m-1) - 1) * (b-x)
             #  - _______________________________________________________________________
             #                              (1 + e^(g(-b + x))^2
-            a = m * (1 / (1 + np.exp(gamma * (beta - value)))) ** (m - 1)
+            a = m * (1/(1+np.exp(gamma *(beta-value))))**(m-1)
             a -= 1
-            a *= np.float(1 - m) ** np.float(m - 1)
-            a *= np.float(m) ** np.float(-m)
-            a *= np.exp(gamma * (value - beta))
-            a *= (beta - value)
-            b = (1 + np.exp(gamma * (value - beta))) ** 2
-            result = -a / b
-
-
+            a *= np.float(1-m)**np.float(m-1)
+            a *= np.float(m)**np.float(-m)
+            a *= np.exp(gamma*(value-beta))
+            a *= (beta-value)
+            b = (1 + np.exp(gamma*(value-beta)))**2
+            result = -a/b 
+            
+           
         elif param == 'beta':
             #    ge^(g(x-b)) * (1-m)^(m-1) * m^-m * (m*( 1/ 1+e^(g(b-x)) )^(m-1) -1)
             #  - ________________________________________________________________
