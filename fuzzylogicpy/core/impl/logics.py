@@ -97,3 +97,35 @@ class AMBC(Logic):
     def or_(self, values) -> float:
         _values = [1 - v for v in values]
         return 1 - np.sqrt(min(_values) * (1.0 / len(values)) * sum(_values))
+
+class ACFL(Logic):
+    def _f(self, value:float, exp, base) -> float:
+        valor = np.log(value) / np.log(base)
+        valor = -1 * np.pow(valor, exp)
+        return valor
+
+    def _fInv(self,value, base, exp) -> float:
+        valor = 1.0/(exp*1.0)
+        valor =  pow(abs(value),valor)
+        if (value < 0):
+            valor *= -1.0
+        valor = np.exp(-1* np.log(base)*valor)
+        return valor
+    
+    def and_(self, values,base, exp) -> float:
+        Ct = sum([self._f(v,base,exp) for v in values])
+        return self._fInv(Ct/len(values),base,exp)
+
+    def imp_(self, ant, cons, base, exp) -> float:
+        return 1 - self._fInv(self._f(1-ant,base,exp)+ self._f(cons,base,exp),base, exp)
+    
+    def eqv_(self, A, B, base, exp) -> float:
+        V1 = self.imp_(A,B, base, exp)
+        V2 = self.imp_(B,A, base, exp)
+        return self._fInv(self._f(V1,base,exp)+self._f(V2,base, exp), base, exp)
+    
+    def for_all(self, values) -> float:
+        pass
+
+    def exist(self, values) -> float:
+        pass
